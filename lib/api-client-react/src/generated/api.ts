@@ -20,8 +20,19 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  Act,
+  ActLog,
+  ActLogInput,
+  ActLogUpdate,
   ErrorResponse,
   HealthStatus,
+  ListActLogsParams,
+  ListScheduleSlotsParams,
+  RemunerationSummary,
+  ScheduleGenerationInput,
+  ScheduleSlot,
+  ScheduleSlotInput,
+  ScheduleSlotUpdate,
   Staff,
   StaffInput,
   StaffSummary,
@@ -500,4 +511,825 @@ export const useDeleteStaff = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getDeleteStaffMutationOptions(options));
     }
+
+export const getListActsUrl = () => {
+
+
+
+
+  return `/api/acts`
+}
+
+/**
+ * @summary List diagnostic acts
+ */
+export const listActs = async ( options?: Parameters<typeof customFetch>[1]): Promise<Act[]> => {
+
+  return customFetch<Act[]>(getListActsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListActsQueryKey = () => {
+    return [
+    `/api/acts`
+    ] as const;
+    }
+
+
+export const getListActsQueryOptions = <TData = Awaited<ReturnType<typeof listActs>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listActs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListActsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listActs>>> = ({ signal }) => listActs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listActs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListActsQueryResult = NonNullable<Awaited<ReturnType<typeof listActs>>>
+export type ListActsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List diagnostic acts
+ */
+
+export function useListActs<TData = Awaited<ReturnType<typeof listActs>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listActs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListActsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListScheduleSlotsUrl = (params: ListScheduleSlotsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/schedule-slots?${stringifiedParams}` : `/api/schedule-slots`
+}
+
+/**
+ * @summary List schedule slots in a date range
+ */
+export const listScheduleSlots = async (params: ListScheduleSlotsParams, options?: Parameters<typeof customFetch>[1]): Promise<ScheduleSlot[]> => {
+
+  return customFetch<ScheduleSlot[]>(getListScheduleSlotsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListScheduleSlotsQueryKey = (params?: ListScheduleSlotsParams,) => {
+    return [
+    `/api/schedule-slots`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListScheduleSlotsQueryOptions = <TData = Awaited<ReturnType<typeof listScheduleSlots>>, TError = ErrorType<unknown>>(params: ListScheduleSlotsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScheduleSlots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListScheduleSlotsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listScheduleSlots>>> = ({ signal }) => listScheduleSlots(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listScheduleSlots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListScheduleSlotsQueryResult = NonNullable<Awaited<ReturnType<typeof listScheduleSlots>>>
+export type ListScheduleSlotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List schedule slots in a date range
+ */
+
+export function useListScheduleSlots<TData = Awaited<ReturnType<typeof listScheduleSlots>>, TError = ErrorType<unknown>>(
+ params: ListScheduleSlotsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScheduleSlots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListScheduleSlotsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateScheduleSlotUrl = () => {
+
+
+
+
+  return `/api/schedule-slots`
+}
+
+/**
+ * @summary Create a schedule slot
+ */
+export const createScheduleSlot = async (scheduleSlotInput: ScheduleSlotInput, options?: Parameters<typeof customFetch>[1]): Promise<ScheduleSlot> => {
+
+  return customFetch<ScheduleSlot>(getCreateScheduleSlotUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(scheduleSlotInput)
+  }
+);}
+
+
+
+
+
+export const getCreateScheduleSlotMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createScheduleSlot>>, TError,{data: BodyType<ScheduleSlotInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createScheduleSlot>>, TError,{data: BodyType<ScheduleSlotInput>}, TContext> => {
+
+const mutationKey = ['createScheduleSlot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createScheduleSlot>>, {data: BodyType<ScheduleSlotInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createScheduleSlot(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateScheduleSlotMutationResult = NonNullable<Awaited<ReturnType<typeof createScheduleSlot>>>
+    export type CreateScheduleSlotMutationBody = BodyType<ScheduleSlotInput>
+    export type CreateScheduleSlotMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a schedule slot
+ */
+export const useCreateScheduleSlot = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createScheduleSlot>>, TError,{data: BodyType<ScheduleSlotInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createScheduleSlot>>,
+        TError,
+        {data: BodyType<ScheduleSlotInput>},
+        TContext
+      > => {
+      return useMutation(getCreateScheduleSlotMutationOptions(options));
+    }
+
+export const getGenerateScheduleUrl = () => {
+
+
+
+
+  return `/api/schedule-slots/generate`
+}
+
+/**
+ * @summary Generate schedule slots
+ */
+export const generateSchedule = async (scheduleGenerationInput: ScheduleGenerationInput, options?: Parameters<typeof customFetch>[1]): Promise<ScheduleSlot[]> => {
+
+  return customFetch<ScheduleSlot[]>(getGenerateScheduleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(scheduleGenerationInput)
+  }
+);}
+
+
+
+
+
+export const getGenerateScheduleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateSchedule>>, TError,{data: BodyType<ScheduleGenerationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateSchedule>>, TError,{data: BodyType<ScheduleGenerationInput>}, TContext> => {
+
+const mutationKey = ['generateSchedule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateSchedule>>, {data: BodyType<ScheduleGenerationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateSchedule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof generateSchedule>>>
+    export type GenerateScheduleMutationBody = BodyType<ScheduleGenerationInput>
+    export type GenerateScheduleMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate schedule slots
+ */
+export const useGenerateSchedule = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateSchedule>>, TError,{data: BodyType<ScheduleGenerationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateSchedule>>,
+        TError,
+        {data: BodyType<ScheduleGenerationInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateScheduleMutationOptions(options));
+    }
+
+export const getUpdateScheduleSlotUrl = (id: string,) => {
+
+
+
+
+  return `/api/schedule-slots/${id}`
+}
+
+/**
+ * @summary Update a schedule slot
+ */
+export const updateScheduleSlot = async (id: string,
+    scheduleSlotUpdate: ScheduleSlotUpdate, options?: Parameters<typeof customFetch>[1]): Promise<ScheduleSlot> => {
+
+  return customFetch<ScheduleSlot>(getUpdateScheduleSlotUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(scheduleSlotUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateScheduleSlotMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateScheduleSlot>>, TError,{id: string;data: BodyType<ScheduleSlotUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateScheduleSlot>>, TError,{id: string;data: BodyType<ScheduleSlotUpdate>}, TContext> => {
+
+const mutationKey = ['updateScheduleSlot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateScheduleSlot>>, {id: string;data: BodyType<ScheduleSlotUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateScheduleSlot(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateScheduleSlotMutationResult = NonNullable<Awaited<ReturnType<typeof updateScheduleSlot>>>
+    export type UpdateScheduleSlotMutationBody = BodyType<ScheduleSlotUpdate>
+    export type UpdateScheduleSlotMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update a schedule slot
+ */
+export const useUpdateScheduleSlot = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateScheduleSlot>>, TError,{id: string;data: BodyType<ScheduleSlotUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateScheduleSlot>>,
+        TError,
+        {id: string;data: BodyType<ScheduleSlotUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateScheduleSlotMutationOptions(options));
+    }
+
+export const getDeleteScheduleSlotUrl = (id: string,) => {
+
+
+
+
+  return `/api/schedule-slots/${id}`
+}
+
+/**
+ * @summary Delete a schedule slot
+ */
+export const deleteScheduleSlot = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteScheduleSlotUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteScheduleSlotMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteScheduleSlot>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteScheduleSlot>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteScheduleSlot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteScheduleSlot>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteScheduleSlot(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteScheduleSlotMutationResult = NonNullable<Awaited<ReturnType<typeof deleteScheduleSlot>>>
+
+    export type DeleteScheduleSlotMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a schedule slot
+ */
+export const useDeleteScheduleSlot = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteScheduleSlot>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteScheduleSlot>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteScheduleSlotMutationOptions(options));
+    }
+
+export const getListActLogsUrl = (params?: ListActLogsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/act-logs?${stringifiedParams}` : `/api/act-logs`
+}
+
+/**
+ * @summary List performed diagnostic acts
+ */
+export const listActLogs = async (params?: ListActLogsParams, options?: Parameters<typeof customFetch>[1]): Promise<ActLog[]> => {
+
+  return customFetch<ActLog[]>(getListActLogsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListActLogsQueryKey = (params?: ListActLogsParams,) => {
+    return [
+    `/api/act-logs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListActLogsQueryOptions = <TData = Awaited<ReturnType<typeof listActLogs>>, TError = ErrorType<unknown>>(params?: ListActLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listActLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListActLogsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listActLogs>>> = ({ signal }) => listActLogs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listActLogs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListActLogsQueryResult = NonNullable<Awaited<ReturnType<typeof listActLogs>>>
+export type ListActLogsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List performed diagnostic acts
+ */
+
+export function useListActLogs<TData = Awaited<ReturnType<typeof listActLogs>>, TError = ErrorType<unknown>>(
+ params?: ListActLogsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listActLogs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListActLogsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateActLogUrl = () => {
+
+
+
+
+  return `/api/act-logs`
+}
+
+/**
+ * @summary Record a performed diagnostic act
+ */
+export const createActLog = async (actLogInput: ActLogInput, options?: Parameters<typeof customFetch>[1]): Promise<ActLog> => {
+
+  return customFetch<ActLog>(getCreateActLogUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(actLogInput)
+  }
+);}
+
+
+
+
+
+export const getCreateActLogMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createActLog>>, TError,{data: BodyType<ActLogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createActLog>>, TError,{data: BodyType<ActLogInput>}, TContext> => {
+
+const mutationKey = ['createActLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createActLog>>, {data: BodyType<ActLogInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createActLog(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateActLogMutationResult = NonNullable<Awaited<ReturnType<typeof createActLog>>>
+    export type CreateActLogMutationBody = BodyType<ActLogInput>
+    export type CreateActLogMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record a performed diagnostic act
+ */
+export const useCreateActLog = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createActLog>>, TError,{data: BodyType<ActLogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createActLog>>,
+        TError,
+        {data: BodyType<ActLogInput>},
+        TContext
+      > => {
+      return useMutation(getCreateActLogMutationOptions(options));
+    }
+
+export const getUpdateActLogUrl = (id: string,) => {
+
+
+
+
+  return `/api/act-logs/${id}`
+}
+
+/**
+ * @summary Update a performed diagnostic act
+ */
+export const updateActLog = async (id: string,
+    actLogUpdate: ActLogUpdate, options?: Parameters<typeof customFetch>[1]): Promise<ActLog> => {
+
+  return customFetch<ActLog>(getUpdateActLogUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(actLogUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateActLogMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateActLog>>, TError,{id: string;data: BodyType<ActLogUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateActLog>>, TError,{id: string;data: BodyType<ActLogUpdate>}, TContext> => {
+
+const mutationKey = ['updateActLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateActLog>>, {id: string;data: BodyType<ActLogUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateActLog(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateActLogMutationResult = NonNullable<Awaited<ReturnType<typeof updateActLog>>>
+    export type UpdateActLogMutationBody = BodyType<ActLogUpdate>
+    export type UpdateActLogMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a performed diagnostic act
+ */
+export const useUpdateActLog = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateActLog>>, TError,{id: string;data: BodyType<ActLogUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateActLog>>,
+        TError,
+        {id: string;data: BodyType<ActLogUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateActLogMutationOptions(options));
+    }
+
+export const getDeleteActLogUrl = (id: string,) => {
+
+
+
+
+  return `/api/act-logs/${id}`
+}
+
+/**
+ * @summary Delete a performed diagnostic act
+ */
+export const deleteActLog = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteActLogUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteActLogMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteActLog>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteActLog>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteActLog'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteActLog>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteActLog(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteActLogMutationResult = NonNullable<Awaited<ReturnType<typeof deleteActLog>>>
+
+    export type DeleteActLogMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a performed diagnostic act
+ */
+export const useDeleteActLog = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteActLog>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteActLog>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteActLogMutationOptions(options));
+    }
+
+export const getListRemunerationUrl = () => {
+
+
+
+
+  return `/api/remuneration`
+}
+
+/**
+ * @summary List monthly remuneration summaries
+ */
+export const listRemuneration = async ( options?: Parameters<typeof customFetch>[1]): Promise<RemunerationSummary[]> => {
+
+  return customFetch<RemunerationSummary[]>(getListRemunerationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRemunerationQueryKey = () => {
+    return [
+    `/api/remuneration`
+    ] as const;
+    }
+
+
+export const getListRemunerationQueryOptions = <TData = Awaited<ReturnType<typeof listRemuneration>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRemuneration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRemunerationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRemuneration>>> = ({ signal }) => listRemuneration({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRemuneration>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRemunerationQueryResult = NonNullable<Awaited<ReturnType<typeof listRemuneration>>>
+export type ListRemunerationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List monthly remuneration summaries
+ */
+
+export function useListRemuneration<TData = Awaited<ReturnType<typeof listRemuneration>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRemuneration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRemunerationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 

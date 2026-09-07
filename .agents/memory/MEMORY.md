@@ -1,1 +1,2 @@
 - [Supabase schema prerequisite](supabase-schema.md) — apply the provided SQL in Supabase before enabling MediLife CRUD.
+- [OpenAPI query date boundary](openapi-query-date-boundary.md) — validate date query strings at the HTTP boundary when generated Zod expects Date objects.

@@ -9,7 +9,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  ShieldCheck,
+  Database,
   Stethoscope,
   UsersRound,
   X,
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#d6e7e7] text-[11px] font-bold text-[#1d4b55]">AD</div>
             <div className={`min-w-0 ${collapsed ? "md:hidden" : ""}`}>
               <p className="truncate text-xs font-semibold text-sidebar-accent-foreground">Administration</p>
-              <p className="mt-0.5 font-mono-ui text-[10px] text-sidebar-foreground/45">Session active</p>
+              <p className="mt-0.5 font-mono-ui text-[10px] text-sidebar-foreground/45">Mode MVP · auth à durcir</p>
             </div>
             <span className={`ml-auto size-1.5 rounded-full bg-[#70c6aa] ${collapsed ? "md:hidden" : ""}`} />
           </div>
@@ -94,8 +94,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 sm:flex">
-              <ShieldCheck size={14} className="text-[#2f8f86]" />
-              <span className="font-mono-ui text-[10px] uppercase tracking-[.1em] text-muted-foreground">Données sécurisées</span>
+              <Database size={14} className="text-[#2f8f86]" />
+              <span className="font-mono-ui text-[10px] uppercase tracking-[.1em] text-muted-foreground">Supabase via serveur</span>
             </div>
             <div className="flex size-8 items-center justify-center rounded-full border border-[#b8d2d4] bg-[#e1eff0] text-[11px] font-bold text-[#1d5960]">AD</div>
           </div>

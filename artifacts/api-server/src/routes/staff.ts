@@ -12,11 +12,16 @@ type SupabaseStaff = {
   full_name: string;
   email: string;
   phone: string | null;
-  specialities: string[] | null;
-  max_shifts_per_week: number;
   role: string;
+  contract_type: string;
+  specialities: string[] | null;
+  scheduling_constraints: Record<string, unknown> | null;
+  max_shifts_per_week: number;
+  max_gardes_per_month: number | null;
   is_active: boolean;
+  hire_date: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 type SupabaseError = {
@@ -48,11 +53,16 @@ function toStaff(row: SupabaseStaff) {
     full_name: row.full_name,
     email: row.email,
     phone: row.phone ?? null,
-    speciality: row.specialities?.[0] ?? null,
-    max_shifts_per_week: row.max_shifts_per_week,
     role: row.role,
+    contract_type: row.contract_type,
+    specialities: row.specialities ?? [],
+    scheduling_constraints: row.scheduling_constraints ?? {},
+    max_shifts_per_week: row.max_shifts_per_week,
+    max_gardes_per_month: row.max_gardes_per_month ?? null,
     is_active: row.is_active,
+    hire_date: row.hire_date ?? null,
     created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }
 
@@ -85,7 +95,7 @@ function sendProxyError(response: Response, message: string, status = 502) {
 router.get("/staff", async (req, res) => {
   try {
     const response = await supabaseRequest(
-      "/staff?select=id,full_name,email,phone,specialities,max_shifts_per_week,role,is_active,created_at&order=created_at.desc",
+      "/staff?select=id,full_name,email,phone,role,contract_type,specialities,scheduling_constraints,max_shifts_per_week,max_gardes_per_month,is_active,hire_date,created_at,updated_at&order=created_at.desc",
     );
     if (!response.ok) {
       sendProxyError(res, await readError(response));
@@ -136,8 +146,19 @@ router.post("/staff", async (req, res) => {
     return;
   }
 
-  const { full_name, email, phone, speciality, max_shifts_per_week } =
-    parsed.data;
+  const {
+    full_name,
+    email,
+    phone,
+    role,
+    contract_type,
+    specialities,
+    scheduling_constraints,
+    max_shifts_per_week,
+    max_gardes_per_month,
+    is_active,
+    hire_date,
+  } = parsed.data;
 
   try {
     const response = await supabaseRequest("/staff", {
@@ -150,11 +171,14 @@ router.post("/staff", async (req, res) => {
         full_name,
         email,
         phone: phone ?? null,
-        specialities: speciality ? [speciality] : [],
+        role,
+        contract_type,
+        specialities: specialities ?? [],
+        scheduling_constraints: scheduling_constraints ?? {},
         max_shifts_per_week,
-        role: "medecin",
-        contract_type: "cdi",
-        is_active: true,
+        max_gardes_per_month: max_gardes_per_month ?? null,
+        is_active: is_active ?? true,
+        hire_date: hire_date ?? null,
       }),
     });
 
@@ -190,12 +214,28 @@ router.patch("/staff/:id", async (req, res) => {
       : { full_name: parsed.data.full_name }),
     ...(parsed.data.email === undefined ? {} : { email: parsed.data.email }),
     ...(parsed.data.phone === undefined ? {} : { phone: parsed.data.phone ?? null }),
-    ...(parsed.data.speciality === undefined
+    ...(parsed.data.role === undefined ? {} : { role: parsed.data.role }),
+    ...(parsed.data.contract_type === undefined
       ? {}
-      : { specialities: parsed.data.speciality ? [parsed.data.speciality] : [] }),
+      : { contract_type: parsed.data.contract_type }),
+    ...(parsed.data.specialities === undefined
+      ? {}
+      : { specialities: parsed.data.specialities }),
+    ...(parsed.data.scheduling_constraints === undefined
+      ? {}
+      : { scheduling_constraints: parsed.data.scheduling_constraints }),
     ...(parsed.data.max_shifts_per_week === undefined
       ? {}
       : { max_shifts_per_week: parsed.data.max_shifts_per_week }),
+    ...(parsed.data.max_gardes_per_month === undefined
+      ? {}
+      : { max_gardes_per_month: parsed.data.max_gardes_per_month }),
+    ...(parsed.data.is_active === undefined
+      ? {}
+      : { is_active: parsed.data.is_active }),
+    ...(parsed.data.hire_date === undefined
+      ? {}
+      : { hire_date: parsed.data.hire_date }),
   };
 
   try {

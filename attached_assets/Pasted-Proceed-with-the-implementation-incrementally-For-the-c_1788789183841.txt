@@ -1,0 +1,204 @@
+Proceed with the implementation incrementally.
+
+For the current development/MVP phase:
+
+1. DATABASE
+Do NOT create a local/mock database.
+
+The provided SQL schema is the source of truth:
+- staff
+- acts
+- schedule_slots
+- act_logs
+- v_staff_monthly_remuneration
+
+I will execute the provided SQL schema manually in my Supabase project.
+
+Do not modify or replace the schema with another architecture.
+
+After I apply the schema, verify that the application works against the real Supabase database.
+
+2. AUTHENTICATION
+
+For now, implement the application in a development-friendly way without blocking the core functionality on authentication.
+
+However, structure the code so authentication and role-based authorization can be added cleanly later.
+
+Do NOT pretend that the application is production-secure.
+
+Keep the future roles in mind:
+- administrateur
+- secrétaire
+- personnel médical
+
+Do not expose sensitive credentials to the frontend.
+
+3. PERSONNEL
+
+Now bring the Personnel module into full conformity with the actual `staff` schema.
+
+The form and API must support all relevant fields:
+- name
+- role
+- contract_type
+- specialities
+- max_gardes_per_month
+- scheduling_constraints
+- hire_date
+- active status
+- and every other field defined by the SQL schema.
+
+Do not reduce `specialities text[]` to a single string.
+
+Implement real CRUD against Supabase:
+- Create
+- Read
+- Update
+- Delete
+
+After each mutation, refresh/invalidate the relevant queries.
+
+4. PLANNING
+
+Implement the Planning module according to the specifications and the actual `schedule_slots` schema.
+
+Do not use MOCK_STAFF or local-only data.
+
+Use real staff and real schedule_slots data.
+
+Implement the required:
+- week/month views
+- staff assignment
+- editing
+- drag and drop where specified
+- cell locking
+- selective regeneration of unlocked cells
+- full regeneration/reset where specified
+- conflict detection
+- persistence to Supabase.
+
+Make sure the shift types exactly match the SQL enums:
+- garde_jour
+- garde_nuit
+- journee_complete
+- repos
+
+Do not use incompatible values such as `nuit` or `garde`.
+
+5. ACT ENTRY
+
+Implement the Actes/Saisie des actes module using the real `acts` catalogue and `act_logs` table.
+
+Do not use static mock acts or hardcoded prices.
+
+The user must be able to:
+- select a staff member
+- select an act from the Supabase `acts` catalogue
+- select date
+- enter quantity
+- specify garde where applicable
+- calculate remuneration from the database unit price
+- save the act
+- view history
+- modify/delete entries where allowed.
+
+The automatic remuneration calculation must follow:
+quantity × unit_price
+
+6. TARIFFS
+
+The current SQL contains unit prices of 0.
+
+For now, keep these values as 0 rather than inventing real medical tariffs.
+
+However:
+- clearly identify that they are placeholder values
+- make the application read prices from the `acts` table
+- do not hardcode prices in React components
+- make it easy to update the actual tariffs later directly in Supabase.
+
+7. REMUNERATION
+
+Implement the Rémunération module using:
+`v_staff_monthly_remuneration`
+
+It must provide the required period/member summaries according to the specifications.
+
+Do not create fake statistics.
+
+If prices are currently 0, the remuneration will correctly calculate to 0 until real prices are entered.
+
+8. EXPORTS
+
+Implement the required PDF export functionality according to the specifications.
+
+Implement the personalized planning email distribution architecture if the required information is available in the specifications.
+
+If email credentials/provider configuration is required and not available, implement the feature cleanly but clearly identify the missing external configuration rather than using fake email sending.
+
+9. SECURITY
+
+Keep the Supabase service credentials server-side.
+
+Do not expose secret/service-role credentials in frontend code.
+
+Keep CORS and API security structured so that proper authentication can be added before production.
+
+Do not claim production security until authentication and authorization are implemented.
+
+10. TESTING
+
+Do not stop at TypeScript compilation.
+
+Test actual end-to-end functionality against Supabase.
+
+At minimum:
+
+PERSONNEL:
+Create → Supabase → Read → Update → Supabase → Delete → Supabase
+
+PLANNING:
+Create/edit/lock schedule slot → verify Supabase persistence.
+
+ACTES:
+Create act log → verify Supabase → verify remuneration calculation.
+
+REMUNERATION:
+Verify data comes from the real view.
+
+11. UI
+
+Keep the existing French medical interface and navigation.
+
+Do not create empty placeholder pages for modules that are required by the specifications.
+
+Do not use fake data simply to make the UI look populated.
+
+Use proper empty states when the database contains no records.
+
+12. IMPORTANT WORKFLOW
+
+Work incrementally.
+
+First implement and verify:
+A. Supabase schema compatibility
+B. Personnel
+C. Planning
+D. Actes
+E. Rémunération
+F. Exports
+G. authentication/security hardening
+
+Do not rewrite working code unnecessarily.
+
+Before each major architectural change, inspect the existing implementation and preserve useful work.
+
+At the end of each phase, report:
+- files changed
+- functionality implemented
+- Supabase tables/views used
+- tests performed
+- errors remaining
+- next recommended step.
+
+Start now with Personnel and database integration, then proceed incrementally through the remaining modules.

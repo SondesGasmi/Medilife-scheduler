@@ -6,9 +6,27 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './act';
+export * from './actLog';
+export * from './actLogInput';
+export * from './actLogUpdate';
+export * from './contractType';
 export * from './errorResponse';
 export * from './healthStatus';
+export * from './listActLogsParams';
+export * from './listScheduleSlotsParams';
+export * from './remunerationSummary';
+export * from './scheduleGenerationInput';
+export * from './scheduleSlot';
+export * from './scheduleSlotInput';
+export * from './scheduleSlotUpdate';
+export * from './shiftType';
+export * from './slotStatus';
 export * from './staff';
 export * from './staffInput';
+export * from './staffInputSchedulingConstraints';
+export * from './staffRole';
+export * from './staffSchedulingConstraints';
 export * from './staffSummary';
 export * from './staffUpdate';
+export * from './staffUpdateSchedulingConstraints';

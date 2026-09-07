@@ -5,6 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ContractType } from './contractType';
+import type { StaffRole } from './staffRole';
+import type { StaffSchedulingConstraints } from './staffSchedulingConstraints';
 
 export interface Staff {
   id: string;
@@ -12,11 +15,20 @@ export interface Staff {
   email: string;
   /** @nullable */
   phone: string | null;
-  /** @nullable */
-  speciality: string | null;
+  role: StaffRole;
+  contract_type: ContractType;
+  specialities: string[];
+  scheduling_constraints: StaffSchedulingConstraints;
   /** @minimum 1 */
   max_shifts_per_week: number;
-  role: string;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  max_gardes_per_month: number | null;
   is_active: boolean;
+  /** @nullable */
+  hire_date: Date | null;
   created_at: Date;
+  updated_at: Date;
 }

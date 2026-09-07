@@ -1,0 +1,26 @@
+import { useMemo, useState } from "react";
+import { Download, Mail, Printer } from "lucide-react";
+import { useListRemuneration } from "@workspace/api-client-react";
+
+function formatDA(amount: number) {
+  return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} DA`;
+}
+
+export default function RemunerationPage() {
+  const [month, setMonth] = useState("");
+  const query = useListRemuneration();
+  const rows = query.data ?? [];
+  const filtered = useMemo(() => month ? rows.filter((row) => row.month.startsWith(month)) : rows, [month, rows]);
+  const total = filtered.reduce((sum, row) => sum + row.total_remuneration, 0);
+  const acts = filtered.reduce((sum, row) => sum + row.acts_count, 0);
+
+  return (
+    <div className="animate-enter">
+      <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><div className="mb-3 flex items-center gap-2"><span className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-[#36858b]">Pilotage financier</span><span className="h-px w-8 bg-[#9dc4c6]" /></div><h1 className="font-display text-[42px] leading-[.95] tracking-[-.045em] text-foreground md:text-[52px]">Rémunération & exports</h1><p className="mt-3 max-w-[650px] text-sm leading-6 text-muted-foreground">Une synthèse calculée depuis la vue mensuelle Supabase, sans statistiques reconstituées côté interface.</p></div><div className="flex gap-2"><button type="button" onClick={() => window.print()} className="button-primary"><Printer size={15} /> Imprimer / PDF</button><button type="button" disabled title="Aucun fournisseur e-mail configuré" className="button-secondary opacity-60"><Mail size={15} /> Distribution e-mail</button></div></div>
+      {query.isError && <div role="alert" className="mb-5 rounded-lg border border-[#ecc7c5] bg-[#fdf1f0] px-4 py-3 text-xs font-medium text-[#a93d39]">La vue de rémunération est indisponible. Appliquez le schéma MediLife et vérifiez les droits Supabase.</div>}
+      <div className="mb-5 grid gap-3 sm:grid-cols-3"><div className="rounded-xl border border-border bg-card p-5 shadow-xs"><p className="font-mono-ui text-[10px] uppercase tracking-[.16em] text-muted-foreground">Périodes affichées</p><p className="mt-2 font-display text-3xl">{new Set(filtered.map((row) => row.month)).size}</p></div><div className="rounded-xl border border-border bg-card p-5 shadow-xs"><p className="font-mono-ui text-[10px] uppercase tracking-[.16em] text-muted-foreground">Actes comptabilisés</p><p className="mt-2 font-display text-3xl">{acts}</p></div><div className="rounded-xl border border-border bg-card p-5 shadow-xs"><p className="font-mono-ui text-[10px] uppercase tracking-[.16em] text-muted-foreground">Total calculé</p><p className="mt-2 font-display text-3xl">{formatDA(total)}</p></div></div>
+      <section className="overflow-hidden rounded-xl border border-border bg-card shadow-xs"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4"><div><h2 className="text-sm font-semibold">Synthèse par membre et par mois</h2><p className="mt-1 text-[11px] text-muted-foreground">Source : `v_staff_monthly_remuneration`</p></div><label className="flex items-center gap-2 text-xs text-muted-foreground">Filtrer par mois<input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="form-input h-9 w-auto" /></label></div>{filtered.length === 0 ? <div className="blueprint-grid flex min-h-[280px] flex-col items-center justify-center px-5 text-center"><Download size={22} className="text-[#39858c]" /><h3 className="mt-3 text-sm font-semibold">Aucune rémunération disponible</h3><p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">Les lignes apparaîtront après l’enregistrement d’actes avec des données Supabase.</p></div> : <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left"><thead className="bg-[#f5f8f8]"><tr className="border-b border-border"><th className="px-5 py-3 font-mono-ui text-[9px] uppercase tracking-[.15em] text-muted-foreground">Membre</th><th className="px-5 py-3 font-mono-ui text-[9px] uppercase tracking-[.15em] text-muted-foreground">Mois</th><th className="px-5 py-3 text-right font-mono-ui text-[9px] uppercase tracking-[.15em] text-muted-foreground">Actes</th><th className="px-5 py-3 text-right font-mono-ui text-[9px] uppercase tracking-[.15em] text-muted-foreground">Rémunération</th></tr></thead><tbody>{filtered.map((row) => <tr key={`${row.staff_id}-${row.month}`} className="border-b border-border/70 last:border-0"><td className="px-5 py-4 text-sm font-semibold">{row.full_name}</td><td className="px-5 py-4 text-sm text-muted-foreground">{new Date(`${row.month}T00:00:00`).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</td><td className="px-5 py-4 text-right text-sm">{row.acts_count}</td><td className="px-5 py-4 text-right text-sm font-semibold">{formatDA(row.total_remuneration)}</td></tr>)}</tbody></table></div>}</section>
+      <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><Mail size={13} /> L’envoi e-mail n’est pas simulé : il nécessitera un fournisseur et une configuration externe avant activation.</p>
+    </div>
+  );
+}

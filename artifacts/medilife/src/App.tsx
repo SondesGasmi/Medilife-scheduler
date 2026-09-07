@@ -6,7 +6,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/app-shell';
 import NotFound from '@/pages/not-found';
 import PersonnelPage from '@/pages/personnel';
-import FuturePage from '@/pages/future-page';
+import PlanningPage from '@/pages/planning';
+import ActesPage from '@/pages/actes';
+import RemunerationPage from '@/pages/remuneration';
 import {
   Route,
   Switch,
@@ -25,9 +27,9 @@ function Router() {
         <Switch>
           <Route path="/" component={PersonnelPage} />
           <Route path="/personnel" component={PersonnelPage} />
-          <Route path="/planning" component={FuturePage} />
-          <Route path="/actes" component={FuturePage} />
-          <Route path="/remuneration" component={FuturePage} />
+          <Route path="/planning" component={PlanningPage} />
+          <Route path="/actes" component={ActesPage} />
+          <Route path="/remuneration" component={RemunerationPage} />
           <Route component={NotFound} />
         </Switch>
       </AppShell>

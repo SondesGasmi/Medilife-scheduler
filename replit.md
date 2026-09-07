@@ -1,44 +1,56 @@
-# [Project name]
+# MediLife
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Application française de gestion des gardes, des actes diagnostiques et de la rémunération d’un centre de diagnostic.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Supabase is accessed server-side through the installed Replit connector; no Supabase service credential is exposed to the browser.
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
+- DB: connected Supabase project, using the provided SQL schema and REST proxy
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/medilife/src/pages/` — Personnel, Planning, Actes and Rémunération screens
+- `artifacts/api-server/src/routes/` — server-side Supabase proxy routes
+- `lib/api-spec/openapi.yaml` — API source of truth and codegen input
+- `attached_assets/medilife_schema_1788785548602.sql` — Supabase schema source of truth
+- `artifacts/medilife/src/index.css` — MediLife visual system
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The browser calls the MediLife API; Supabase access stays on the API server.
+- The application does not create or replace the supplied Supabase schema.
+- Staff specialities remain an array and scheduling constraints remain JSON so the SQL model is not flattened.
+- Authentication is intentionally not blocking the development MVP and must be hardened before production.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Maintain the medical staff directory against Supabase.
+- Create, edit, lock and regenerate schedule slots.
+- Record acts against the Supabase catalogue and act log.
+- Read monthly remuneration summaries and print the report as PDF.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Work incrementally from the supplied schema and do not introduce a local/mock database.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The user must execute the supplied SQL manually in Supabase before CRUD can be tested.
+- The supplied act tariffs are intentionally zero until real values are entered in Supabase.
+- The SQL currently contains read-only authenticated RLS policies; write/auth hardening remains before production.
 
 ## Pointers
 

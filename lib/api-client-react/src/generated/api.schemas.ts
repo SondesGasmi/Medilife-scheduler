@@ -9,20 +9,55 @@ export interface HealthStatus {
   status: string;
 }
 
+export type StaffSchedulingConstraints = { [key: string]: unknown };
+
+export type StaffRole = typeof StaffRole[keyof typeof StaffRole];
+
+
+export const StaffRole = {
+  radiologue: 'radiologue',
+  medecin: 'medecin',
+  manipulateur_radio: 'manipulateur_radio',
+  technicien: 'technicien',
+  secretaire: 'secretaire',
+  administrateur: 'administrateur',
+} as const;
+
+export type ContractType = typeof ContractType[keyof typeof ContractType];
+
+
+export const ContractType = {
+  cdi: 'cdi',
+  temps_partiel: 'temps_partiel',
+  vacataire: 'vacataire',
+  stagiaire: 'stagiaire',
+} as const;
+
 export interface Staff {
   id: string;
   full_name: string;
   email: string;
   /** @nullable */
   phone: string | null;
-  /** @nullable */
-  speciality: string | null;
+  role: StaffRole;
+  contract_type: ContractType;
+  specialities: string[];
+  scheduling_constraints: StaffSchedulingConstraints;
   /** @minimum 1 */
   max_shifts_per_week: number;
-  role: string;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  max_gardes_per_month: number | null;
   is_active: boolean;
+  /** @nullable */
+  hire_date: string | null;
   created_at: string;
+  updated_at: string;
 }
+
+export type StaffInputSchedulingConstraints = { [key: string]: unknown };
 
 export interface StaffInput {
   /** @minLength 2 */
@@ -30,14 +65,26 @@ export interface StaffInput {
   email: string;
   /** @nullable */
   phone?: string | null;
-  /** @nullable */
-  speciality?: string | null;
+  role: StaffRole;
+  contract_type: ContractType;
+  specialities?: string[];
+  scheduling_constraints?: StaffInputSchedulingConstraints;
   /**
      * @minimum 1
      * @maximum 14
      */
   max_shifts_per_week: number;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  max_gardes_per_month?: number | null;
+  is_active?: boolean;
+  /** @nullable */
+  hire_date?: string | null;
 }
+
+export type StaffUpdateSchedulingConstraints = { [key: string]: unknown };
 
 export interface StaffUpdate {
   /** @minLength 2 */
@@ -45,13 +92,23 @@ export interface StaffUpdate {
   email?: string;
   /** @nullable */
   phone?: string | null;
-  /** @nullable */
-  speciality?: string | null;
+  role?: StaffRole;
+  contract_type?: ContractType;
+  specialities?: string[];
+  scheduling_constraints?: StaffUpdateSchedulingConstraints;
   /**
      * @minimum 1
      * @maximum 14
      */
   max_shifts_per_week?: number;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  max_gardes_per_month?: number | null;
+  is_active?: boolean;
+  /** @nullable */
+  hire_date?: string | null;
 }
 
 export interface StaffSummary {
@@ -61,7 +118,153 @@ export interface StaffSummary {
   available_slots: number;
 }
 
+export interface Act {
+  id: string;
+  code: string;
+  name_fr: string;
+  category: string;
+  /** @minimum 0 */
+  base_price: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ShiftType = typeof ShiftType[keyof typeof ShiftType];
+
+
+export const ShiftType = {
+  matin: 'matin',
+  apres_midi: 'apres_midi',
+  journee_complete: 'journee_complete',
+  garde_jour: 'garde_jour',
+  garde_nuit: 'garde_nuit',
+  repos: 'repos',
+} as const;
+
+export type SlotStatus = typeof SlotStatus[keyof typeof SlotStatus];
+
+
+export const SlotStatus = {
+  planifie: 'planifie',
+  confirme: 'confirme',
+  annule: 'annule',
+  remplace: 'remplace',
+} as const;
+
+export interface ScheduleSlot {
+  id: string;
+  /** @nullable */
+  staff_id: string | null;
+  shift_date: string;
+  shift_type: ShiftType;
+  status: SlotStatus;
+  is_locked: boolean;
+  /** @nullable */
+  locked_by: string | null;
+  /** @nullable */
+  locked_at: string | null;
+  /** @nullable */
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScheduleSlotInput {
+  /** @nullable */
+  staff_id?: string | null;
+  shift_date: string;
+  shift_type: ShiftType;
+  status?: SlotStatus;
+  is_locked?: boolean;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface ScheduleSlotUpdate {
+  /** @nullable */
+  staff_id?: string | null;
+  shift_date?: string;
+  shift_type?: ShiftType;
+  status?: SlotStatus;
+  is_locked?: boolean;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface ScheduleGenerationInput {
+  from: string;
+  to: string;
+  full_reset?: boolean;
+}
+
+export interface ActLog {
+  id: string;
+  staff_id: string;
+  act_id: string;
+  /** @nullable */
+  schedule_slot_id: string | null;
+  performed_at: string;
+  /** @minimum 1 */
+  quantity: number;
+  /** @minimum 0 */
+  unit_price: number;
+  /** @minimum 0 */
+  total_amount: number;
+  /** @nullable */
+  entered_by: string | null;
+  /** @nullable */
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActLogInput {
+  staff_id: string;
+  act_id: string;
+  /** @nullable */
+  schedule_slot_id?: string | null;
+  performed_at: string;
+  /** @minimum 1 */
+  quantity: number;
+  /** @nullable */
+  entered_by?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface ActLogUpdate {
+  staff_id?: string;
+  act_id?: string;
+  /** @nullable */
+  schedule_slot_id?: string | null;
+  performed_at?: string;
+  /** @minimum 1 */
+  quantity?: number;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface RemunerationSummary {
+  staff_id: string;
+  full_name: string;
+  month: string;
+  acts_count: number;
+  total_remuneration: number;
+}
+
 export interface ErrorResponse {
   error: string;
 }
+
+export type ListScheduleSlotsParams = {
+from: string;
+to: string;
+};
+
+export type ListActLogsParams = {
+from?: string;
+to?: string;
+staff_id?: string;
+};
 

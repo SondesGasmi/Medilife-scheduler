@@ -21,6 +21,8 @@ export const HealthCheckResponse = zod.object({
  * @summary List staff members
  */
 
+export const listStaffResponseMaxGardesPerMonthMin = 0;
+
 
 
 export const ListStaffResponseItem = zod.object({
@@ -28,11 +30,16 @@ export const ListStaffResponseItem = zod.object({
   "full_name": zod.string(),
   "email": zod.string().email(),
   "phone": zod.string().nullable(),
-  "speciality": zod.string().nullable(),
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
+  "specialities": zod.array(zod.string()),
+  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
   "max_shifts_per_week": zod.number().int().min(1),
-  "role": zod.string(),
+  "max_gardes_per_month": zod.number().int().min(listStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),
-  "created_at": zod.coerce.date()
+  "hire_date": zod.coerce.date().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
 })
 export const ListStaffResponse = zod.array(ListStaffResponseItem)
 
@@ -44,16 +51,26 @@ export const createStaffBodyFullNameMin = 2;
 
 export const createStaffBodyMaxShiftsPerWeekMax = 14;
 
+export const createStaffBodyMaxGardesPerMonthMin = 0;
+
 
 
 export const CreateStaffBody = zod.object({
   "full_name": zod.string().min(createStaffBodyFullNameMin),
   "email": zod.string().email(),
   "phone": zod.string().nullish(),
-  "speciality": zod.string().nullish(),
-  "max_shifts_per_week": zod.number().int().min(1).max(createStaffBodyMaxShiftsPerWeekMax)
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
+  "specialities": zod.array(zod.string()).optional(),
+  "scheduling_constraints": zod.record(zod.string(), zod.unknown()).optional(),
+  "max_shifts_per_week": zod.number().int().min(1).max(createStaffBodyMaxShiftsPerWeekMax),
+  "max_gardes_per_month": zod.number().int().min(createStaffBodyMaxGardesPerMonthMin).nullish(),
+  "is_active": zod.boolean().optional(),
+  "hire_date": zod.string().nullish()
 })
 
+
+export const createStaffResponseMaxGardesPerMonthMin = 0;
 
 
 
@@ -62,11 +79,16 @@ export const CreateStaffResponse = zod.object({
   "full_name": zod.string(),
   "email": zod.string().email(),
   "phone": zod.string().nullable(),
-  "speciality": zod.string().nullable(),
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
+  "specialities": zod.array(zod.string()),
+  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
   "max_shifts_per_week": zod.number().int().min(1),
-  "role": zod.string(),
+  "max_gardes_per_month": zod.number().int().min(createStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),
-  "created_at": zod.coerce.date()
+  "hire_date": zod.coerce.date().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
 })
 
 
@@ -92,16 +114,26 @@ export const updateStaffBodyFullNameMin = 2;
 
 export const updateStaffBodyMaxShiftsPerWeekMax = 14;
 
+export const updateStaffBodyMaxGardesPerMonthMin = 0;
+
 
 
 export const UpdateStaffBody = zod.object({
   "full_name": zod.string().min(updateStaffBodyFullNameMin).optional(),
   "email": zod.string().email().optional(),
   "phone": zod.string().nullish(),
-  "speciality": zod.string().nullish(),
-  "max_shifts_per_week": zod.number().int().min(1).max(updateStaffBodyMaxShiftsPerWeekMax).optional()
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']).optional(),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']).optional(),
+  "specialities": zod.array(zod.string()).optional(),
+  "scheduling_constraints": zod.record(zod.string(), zod.unknown()).optional(),
+  "max_shifts_per_week": zod.number().int().min(1).max(updateStaffBodyMaxShiftsPerWeekMax).optional(),
+  "max_gardes_per_month": zod.number().int().min(updateStaffBodyMaxGardesPerMonthMin).nullish(),
+  "is_active": zod.boolean().optional(),
+  "hire_date": zod.coerce.date().nullish()
 })
 
+
+export const updateStaffResponseMaxGardesPerMonthMin = 0;
 
 
 
@@ -110,11 +142,16 @@ export const UpdateStaffResponse = zod.object({
   "full_name": zod.string(),
   "email": zod.string().email(),
   "phone": zod.string().nullable(),
-  "speciality": zod.string().nullable(),
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
+  "specialities": zod.array(zod.string()),
+  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
   "max_shifts_per_week": zod.number().int().min(1),
-  "role": zod.string(),
+  "max_gardes_per_month": zod.number().int().min(updateStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),
-  "created_at": zod.coerce.date()
+  "hire_date": zod.coerce.date().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
 })
 
 
@@ -126,5 +163,279 @@ export const DeleteStaffParams = zod.object({
 })
 
 export const DeleteStaffResponse = zod.void()
+
+
+/**
+ * @summary List diagnostic acts
+ */
+export const listActsResponseBasePriceMin = 0;
+
+
+
+export const ListActsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "code": zod.string(),
+  "name_fr": zod.string(),
+  "category": zod.string(),
+  "base_price": zod.number().min(listActsResponseBasePriceMin),
+  "is_active": zod.boolean(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+export const ListActsResponse = zod.array(ListActsResponseItem)
+
+
+/**
+ * @summary List schedule slots in a date range
+ */
+export const ListScheduleSlotsQueryParams = zod.object({
+  "from": zod.date(),
+  "to": zod.date()
+})
+
+export const ListScheduleSlotsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid().nullable(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean(),
+  "locked_by": zod.string().uuid().nullable(),
+  "locked_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+export const ListScheduleSlotsResponse = zod.array(ListScheduleSlotsResponseItem)
+
+
+/**
+ * @summary Create a schedule slot
+ */
+export const CreateScheduleSlotBody = zod.object({
+  "staff_id": zod.string().uuid().nullish(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']).optional(),
+  "is_locked": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+export const CreateScheduleSlotResponse = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid().nullable(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean(),
+  "locked_by": zod.string().uuid().nullable(),
+  "locked_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Generate schedule slots
+ */
+export const GenerateScheduleBody = zod.object({
+  "from": zod.coerce.date(),
+  "to": zod.coerce.date(),
+  "full_reset": zod.boolean().optional()
+})
+
+export const GenerateScheduleResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid().nullable(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean(),
+  "locked_by": zod.string().uuid().nullable(),
+  "locked_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+export const GenerateScheduleResponse = zod.array(GenerateScheduleResponseItem)
+
+
+/**
+ * @summary Update a schedule slot
+ */
+export const UpdateScheduleSlotParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const UpdateScheduleSlotBody = zod.object({
+  "staff_id": zod.string().uuid().nullish(),
+  "shift_date": zod.coerce.date().optional(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']).optional(),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']).optional(),
+  "is_locked": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateScheduleSlotResponse = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid().nullable(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean(),
+  "locked_by": zod.string().uuid().nullable(),
+  "locked_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a schedule slot
+ */
+export const DeleteScheduleSlotParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteScheduleSlotResponse = zod.void()
+
+
+/**
+ * @summary List performed diagnostic acts
+ */
+export const ListActLogsQueryParams = zod.object({
+  "from": zod.date().optional(),
+  "to": zod.date().optional(),
+  "staff_id": zod.coerce.string().uuid().optional()
+})
+
+
+export const listActLogsResponseUnitPriceMin = 0;
+
+export const listActLogsResponseTotalAmountMin = 0;
+
+
+
+export const ListActLogsResponseItem = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid(),
+  "act_id": zod.string().uuid(),
+  "schedule_slot_id": zod.string().uuid().nullable(),
+  "performed_at": zod.coerce.date(),
+  "quantity": zod.number().int().min(1),
+  "unit_price": zod.number().min(listActLogsResponseUnitPriceMin),
+  "total_amount": zod.number().min(listActLogsResponseTotalAmountMin),
+  "entered_by": zod.string().uuid().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+export const ListActLogsResponse = zod.array(ListActLogsResponseItem)
+
+
+/**
+ * @summary Record a performed diagnostic act
+ */
+
+
+
+export const CreateActLogBody = zod.object({
+  "staff_id": zod.string().uuid(),
+  "act_id": zod.string().uuid(),
+  "schedule_slot_id": zod.string().uuid().nullish(),
+  "performed_at": zod.coerce.date(),
+  "quantity": zod.number().int().min(1),
+  "entered_by": zod.string().uuid().nullish(),
+  "notes": zod.string().nullish()
+})
+
+
+export const createActLogResponseUnitPriceMin = 0;
+
+export const createActLogResponseTotalAmountMin = 0;
+
+
+
+export const CreateActLogResponse = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid(),
+  "act_id": zod.string().uuid(),
+  "schedule_slot_id": zod.string().uuid().nullable(),
+  "performed_at": zod.coerce.date(),
+  "quantity": zod.number().int().min(1),
+  "unit_price": zod.number().min(createActLogResponseUnitPriceMin),
+  "total_amount": zod.number().min(createActLogResponseTotalAmountMin),
+  "entered_by": zod.string().uuid().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a performed diagnostic act
+ */
+export const UpdateActLogParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+
+
+
+export const UpdateActLogBody = zod.object({
+  "staff_id": zod.string().uuid().optional(),
+  "act_id": zod.string().uuid().optional(),
+  "schedule_slot_id": zod.string().uuid().nullish(),
+  "performed_at": zod.coerce.date().optional(),
+  "quantity": zod.number().int().min(1).optional(),
+  "notes": zod.string().nullish()
+})
+
+
+export const updateActLogResponseUnitPriceMin = 0;
+
+export const updateActLogResponseTotalAmountMin = 0;
+
+
+
+export const UpdateActLogResponse = zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid(),
+  "act_id": zod.string().uuid(),
+  "schedule_slot_id": zod.string().uuid().nullable(),
+  "performed_at": zod.coerce.date(),
+  "quantity": zod.number().int().min(1),
+  "unit_price": zod.number().min(updateActLogResponseUnitPriceMin),
+  "total_amount": zod.number().min(updateActLogResponseTotalAmountMin),
+  "entered_by": zod.string().uuid().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a performed diagnostic act
+ */
+export const DeleteActLogParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteActLogResponse = zod.void()
+
+
+/**
+ * @summary List monthly remuneration summaries
+ */
+export const ListRemunerationResponseItem = zod.object({
+  "staff_id": zod.string().uuid(),
+  "full_name": zod.string(),
+  "month": zod.coerce.date(),
+  "acts_count": zod.number().int(),
+  "total_remuneration": zod.number()
+})
+export const ListRemunerationResponse = zod.array(ListRemunerationResponseItem)
 
 

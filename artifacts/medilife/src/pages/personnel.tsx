@@ -12,6 +12,15 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
 }
 
+const roleLabels: Record<Staff["role"], string> = {
+  radiologue: "Radiologue",
+  medecin: "Médecin",
+  manipulateur_radio: "Manipulateur radio",
+  technicien: "Technicien",
+  secretaire: "Secrétaire",
+  administrateur: "Administrateur",
+};
+
 function StatCard({ label, value, hint, accent, loading }: { label: string; value: number; hint: string; accent: string; loading: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card p-5 shadow-xs transition-shadow hover:shadow-md">
@@ -34,7 +43,7 @@ function StaffRow({ staff, onEdit, onDelete }: { staff: Staff; onEdit: (staff: S
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#dbecef] text-[11px] font-bold text-[#266773]">{initials(staff.full_name)}</div>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold text-foreground" data-testid={`text-staff-name-${staff.id}`}>{staff.full_name}</p>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{staff.role === "doctor" ? "Médecin" : staff.role || "Membre médical"}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{roleLabels[staff.role]}</p>
           </div>
         </div>
       </td>
@@ -42,7 +51,13 @@ function StaffRow({ staff, onEdit, onDelete }: { staff: Staff; onEdit: (staff: S
         <div className="flex items-center gap-2 text-xs text-muted-foreground"><Mail size={13} className="text-[#6e9da3]" /><span className="truncate">{staff.email}</span></div>
         {staff.phone && <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground/75"><Phone size={11} className="text-[#9bb2b5]" />{staff.phone}</div>}
       </td>
-      <td className="hidden px-5 py-4 lg:table-cell"><span className="inline-flex rounded-md bg-[#edf2f3] px-2.5 py-1 text-[11px] font-medium text-[#536b70]">{staff.speciality || "Non renseignée"}</span></td>
+      <td className="hidden px-5 py-4 lg:table-cell">
+        <div className="flex flex-wrap gap-1">
+          {staff.specialities.length > 0 ? staff.specialities.map((speciality) => (
+            <span key={speciality} className="inline-flex rounded-md bg-[#edf2f3] px-2.5 py-1 text-[11px] font-medium text-[#536b70]">{speciality}</span>
+          )) : <span className="text-[11px] text-muted-foreground">Non renseignée</span>}
+        </div>
+      </td>
       <td className="hidden px-5 py-4 text-center xl:table-cell"><span className="font-mono-ui text-xs text-foreground">{staff.max_shifts_per_week}<span className="text-muted-foreground"> / sem.</span></span></td>
       <td className="px-4 py-4 md:px-5">
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${staff.is_active ? "bg-[#e3f3ed] text-[#26765c]" : "bg-[#edf0f1] text-[#687a7c]"}`} data-testid={`status-staff-${staff.id}`}>
@@ -73,7 +88,7 @@ export default function PersonnelPage() {
 
   const staff = useMemo(() => staffQuery.data ?? [], [staffQuery.data]);
   const filteredStaff = useMemo(() => staff.filter((member) => {
-    const searchMatch = `${member.full_name} ${member.email} ${member.speciality ?? ""}`.toLowerCase().includes(search.trim().toLowerCase());
+    const searchMatch = `${member.full_name} ${member.email} ${member.role} ${member.specialities.join(" ")}`.toLowerCase().includes(search.trim().toLowerCase());
     const filterMatch = filter === "all" || (filter === "active" ? member.is_active : !member.is_active);
     return searchMatch && filterMatch;
   }), [staff, search, filter]);
@@ -113,7 +128,7 @@ export default function PersonnelPage() {
         <StatCard label="Membres" value={summary?.total ?? 0} hint="dans le référentiel" accent="bg-[#4a9ba3]" loading={summaryQuery.isLoading} />
         <StatCard label="Actifs" value={summary?.active ?? 0} hint="disponibles pour les gardes" accent="bg-[#42a884]" loading={summaryQuery.isLoading} />
         <StatCard label="Radiologues" value={summary?.radiologists ?? 0} hint="spécialité référente" accent="bg-[#5575a4]" loading={summaryQuery.isLoading} />
-        <StatCard label="Créneaux ouverts" value={summary?.available_slots ?? 0} hint="capacité hebdomadaire" accent="bg-[#c69a4d]" loading={summaryQuery.isLoading} />
+         <StatCard label="Capacité hebdo." value={summary?.available_slots ?? 0} hint="gardes cumulées autorisées" accent="bg-[#c69a4d]" loading={summaryQuery.isLoading} />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
