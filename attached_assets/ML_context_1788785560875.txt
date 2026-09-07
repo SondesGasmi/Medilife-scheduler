@@ -1,0 +1,34 @@
+# Project Context: MediLife Shift Scheduler & Act Remuneration Web App
+
+## 1. Overview
+This application is designed for "MediLife", a medical diagnostic center specializing in ultrasound, Doppler, and specialized diagnostic imaging. 
+
+Currently, MediLife uses legacy software called **COspack** for general management, but two key administrative tasks are managed manually using Excel spreadsheets:
+1. **Shift Scheduling:** Staff names are manually entered into Excel, color-coded by shift, and distributed as weekly/monthly plans.
+2. **Act-Based Remuneration:** Medical staff earn extra pay for specific acts performed during shifts (e.g., Echodoppler, Échographie). The entry (*saisie*) and remuneration tracking are calculated manually.
+
+## 2. Core Objectives
+Build a modern, fast, simple web application in **100% French** with a clean UI inspired by traditional medical software (like COspack).
+
+### Core Features:
+- **Staff & Profile Management:** Single entry point for all medical staff information, roles, and shift constraints.
+- **Automated & Interactive Shift Matrix:** 
+  - Automatically generates monthly/weekly timetables based on constraints.
+  - Interactive grid allowing the Administrator to **drag-and-drop, edit cell values directly, or lock specific cells**.
+  - **Selective & Full Regeneration:** Allows regenerating only unlocked cells or running a complete reset.
+- **Export & Automated Distribution:** Generates personalized schedule views as PDFs and emails them directly to staff members.
+- **Act Remuneration Module (*Saisie des Actes*):** Allows logging performed diagnostic acts per shift and automatically calculates total payouts.
+
+## 3. MediLife Specialized Services (Reference List)
+- Échographie générale abdomino-pelvienne
+- Echodoppler rénal
+- Echodoppler hépatique
+- Echodoppler des fistules (FAV)
+- Echodoppler vasculaire artériel et veineux des TSA, membre supérieur et inférieur
+- Échographie ostéoarticulaire
+- Échographie des parties molles
+- Échographie mammaire
+- Échographie cervicale
+- Échographie transfrontalière
+- Échographie pédiatrique (hanches, etc.)
+- Transthoracique de repérage
