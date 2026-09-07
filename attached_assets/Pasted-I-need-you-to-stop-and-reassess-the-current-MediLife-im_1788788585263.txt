@@ -1,0 +1,203 @@
+I need you to stop and reassess the current MediLife implementation against ALL of the project context/specification files I uploaded.
+
+The current application is only a partially implemented UI:
+- Navigation works.
+- Pages can be opened.
+- However, the pages are mostly empty/non-functional.
+- The Personnel module cannot actually create, edit, or delete employees.
+- The Supabase database currently has no MediLife tables.
+- Other required modules such as Planning/Schedules, Acts, Rémunération, etc. have not actually been implemented.
+
+I DO NOT want placeholder pages or a visual mockup. I want a functional MVP connected to my real Supabase project.
+
+IMPORTANT:
+Before changing the code, READ ALL uploaded project/context files again, especially:
+- ML_context_1788785560875.txt
+- constants_1788785537567.js
+- medilife_schema_1788785548602.sql
+- and any other uploaded MediLife specification/context files.
+
+Do not make assumptions when the specifications already contain the required information.
+
+PHASE 1 — ANALYZE THE COMPLETE REQUIREMENTS
+
+First, analyze the specifications and identify:
+1. Every required module/page.
+2. Every user role.
+3. Every required feature/action.
+4. Every database table/entity.
+5. Every field and relationship.
+6. Every required CRUD operation.
+7. Every required workflow.
+8. Any authentication/authorization requirements.
+9. Any RLS/security requirements.
+10. Any UI/navigation requirements.
+
+Compare this with what has actually been implemented.
+
+Give me a concise gap analysis before making major architectural changes.
+
+PHASE 2 — DATABASE
+
+The current Supabase project does not contain the MediLife tables.
+
+Use the provided SQL schema as the source of truth.
+
+DO NOT invent a different database architecture.
+
+Make sure the complete MediLife schema is ready to be applied to the connected Supabase project.
+
+The schema must include all tables required by the specifications, not only `staff`.
+
+Before executing or modifying database-related code, clearly identify what tables the schema creates.
+
+If the Replit Supabase integration allows you to safely execute the provided schema, apply it to the connected Supabase project.
+
+If you cannot safely execute it through the integration, do NOT create a fake/local database. Instead, tell me exactly what SQL I need to execute in Supabase.
+
+Verify afterward that the expected tables actually exist.
+
+Also verify:
+- primary keys
+- foreign keys
+- constraints
+- indexes where required
+- RLS policies
+- appropriate permissions
+- relationships between tables
+
+PHASE 3 — FUNCTIONAL APPLICATION
+
+After the database schema is available, implement the actual MediLife application according to the specifications.
+
+Do NOT create empty placeholder pages.
+
+Every module shown in the navigation must either:
+A. be fully functional according to the specifications, OR
+B. clearly remain marked as "À venir" only if the specifications explicitly say it belongs to a later phase.
+
+At minimum, the current Personnel module must have REAL CRUD functionality:
+- list employees from Supabase
+- search employees
+- filter employees
+- add employee
+- edit employee
+- delete employee
+- confirmation before destructive actions
+- loading states
+- empty states
+- useful error messages
+- successful operation feedback
+
+The UI must update after mutations without requiring a manual page refresh.
+
+PHASE 4 — PLANNING / SCHEDULES
+
+Implement the Planning/Schedule module according to the specifications.
+
+It must NOT be an empty page.
+
+Use the actual database structure and relationships defined in the schema/context.
+
+Implement the required:
+- schedule/calendar view
+- relevant records
+- creation
+- modification
+- deletion
+- filtering/navigation
+- appropriate date/time handling
+
+PHASE 5 — OTHER MODULES
+
+Implement the remaining MediLife modules specified in the uploaded documents, including Acts, Rémunération, Patients, appointments, or any other modules explicitly required by the specifications.
+
+Do not invent features just to fill pages.
+
+Follow the provided requirements.
+
+PHASE 6 — SUPABASE CONNECTION
+
+The application must use the REAL connected Supabase project.
+
+Do not use mock data, hardcoded employee records, fake API responses, localStorage as a database, or temporary in-memory data as a substitute for Supabase.
+
+For every feature that stores or retrieves data, verify that the data actually comes from or is written to Supabase.
+
+For every CRUD operation, test the complete flow:
+Frontend → API/server → Supabase → response → frontend update.
+
+PHASE 7 — ERROR DEBUGGING
+
+There were previously errors around the Supabase `staff` table.
+
+Do not simply hide these errors.
+
+Diagnose the actual root cause.
+
+Verify:
+- Supabase URL/configuration
+- environment variables/secrets
+- server-side Supabase client
+- API routes
+- request/response types
+- database table names
+- column names
+- RLS policies
+- authentication requirements
+- frontend mutation handlers
+
+Fix the root cause rather than masking the error.
+
+PHASE 8 — UI
+
+Keep the existing French medical/clinical visual direction, but make the application genuinely usable.
+
+The navigation should correspond to real modules.
+
+Avoid:
+- empty screens
+- fake statistics
+- fake buttons
+- placeholder CRUD
+- hardcoded data
+- "coming soon" pages where functionality is actually required
+
+Use realistic empty states when the database contains no records.
+
+PHASE 9 — TESTING
+
+After implementation, actually test the application.
+
+For Personnel:
+1. Create an employee.
+2. Verify it appears in the UI.
+3. Verify it exists in Supabase.
+4. Edit it.
+5. Verify the change in Supabase.
+6. Delete it.
+7. Verify it is removed from Supabase.
+
+Perform equivalent tests for the other implemented modules.
+
+Also test navigation, loading states, errors, and empty database states.
+
+IMPORTANT DEVELOPMENT RULE:
+
+Do not rebuild the project blindly.
+
+Preserve working parts of the current implementation where appropriate.
+
+Do not change the architecture unnecessarily.
+
+Work incrementally and verify each module before moving to the next.
+
+At the end, give me:
+1. What was implemented.
+2. What database tables were created.
+3. What Supabase configuration was used.
+4. What functionality was tested successfully.
+5. Any remaining issues.
+6. What I should do next.
+
+Start by reading ALL the uploaded specification files and performing the gap analysis. Do not immediately generate another superficial UI.
