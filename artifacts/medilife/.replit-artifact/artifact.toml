@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "MediLife"
+description = "Application de gestion pour centre de diagnostic médical, avec gestion du personnel, planning des gardes, saisie des actes et suivi des rémunérations."
+version = "1.0.0"
+id = "artifacts/medilife"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20013
+
+[services.development]
+run = "pnpm --filter @workspace/medilife run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/medilife", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/medilife/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20013"
+BASE_PATH = "/"

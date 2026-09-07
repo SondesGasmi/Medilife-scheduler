@@ -1,0 +1,1 @@
+- [Supabase schema prerequisite](supabase-schema.md) — apply the provided SQL in Supabase before enabling MediLife CRUD.

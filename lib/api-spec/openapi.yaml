@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: staff
+    description: Medical staff management
 paths:
   /healthz:
     get:
@@ -24,7 +26,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /staff:
+    get:
+      operationId: listStaff
+      tags: [staff]
+      summary: List staff members
+      responses:
+        "200":
+          description: Staff members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Staff"
+    post:
+      operationId: createStaff
+      tags: [staff]
+      summary: Create a staff member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Created staff member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Staff"
+        "400":
+          description: Invalid staff data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /staff/summary:
+    get:
+      operationId: getStaffSummary
+      tags: [staff]
+      summary: Get staff summary
+      responses:
+        "200":
+          description: Staff summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffSummary"
+  /staff/{id}:
+    patch:
+      operationId: updateStaff
+      tags: [staff]
+      summary: Update a staff member
+      parameters:
+        - $ref: "#/components/parameters/StaffId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffUpdate"
+      responses:
+        "200":
+          description: Updated staff member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Staff"
+        "400":
+          description: Invalid staff data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Staff member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteStaff
+      tags: [staff]
+      summary: Delete a staff member
+      parameters:
+        - $ref: "#/components/parameters/StaffId"
+      responses:
+        "204":
+          description: Staff member deleted
+        "404":
+          description: Staff member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  parameters:
+    StaffId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +139,100 @@ components:
           type: string
       required:
         - status
+    Staff:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        speciality:
+          type: ["string", "null"]
+        max_shifts_per_week:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - full_name
+        - email
+        - phone
+        - speciality
+        - max_shifts_per_week
+        - role
+        - is_active
+        - created_at
+    StaffInput:
+      type: object
+      properties:
+        full_name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        speciality:
+          type: ["string", "null"]
+        max_shifts_per_week:
+          type: integer
+          minimum: 1
+          maximum: 14
+      required:
+        - full_name
+        - email
+        - max_shifts_per_week
+    StaffUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        speciality:
+          type: ["string", "null"]
+        max_shifts_per_week:
+          type: integer
+          minimum: 1
+          maximum: 14
+    StaffSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        active:
+          type: integer
+        radiologists:
+          type: integer
+        available_slots:
+          type: integer
+      required:
+        - total
+        - active
+        - radiologists
+        - available_slots
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 
