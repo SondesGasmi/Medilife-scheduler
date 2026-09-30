@@ -17,7 +17,10 @@ type StaffFormValues = {
   specialities: string;
   max_shifts_per_week: string;
   max_gardes_per_month: string;
-  scheduling_constraints: string;
+  max_hours_per_week: string;
+  min_rest_hours: string;
+  max_consecutive_nights: string;
+  can_work_night: boolean;
   hire_date: string;
   is_active: boolean;
 };
@@ -31,7 +34,10 @@ const emptyValues: StaffFormValues = {
   specialities: "",
   max_shifts_per_week: "4",
   max_gardes_per_month: "",
-  scheduling_constraints: "{}",
+  max_hours_per_week: "40",
+  min_rest_hours: "11",
+  max_consecutive_nights: "2",
+  can_work_night: true,
   hire_date: "",
   is_active: true,
 };
@@ -53,6 +59,12 @@ const contractOptions: Array<{ value: ContractType; label: string }> = [
 ];
 
 function staffToValues(staff: Staff): StaffFormValues {
+  const constraints = (staff.scheduling_constraints ?? {}) as Record<string, unknown>;
+  const numericConstraint = (key: string, fallback: number) => {
+    const value = Number(constraints[key]);
+    return Number.isFinite(value) ? String(value) : String(fallback);
+  };
+
   return {
     full_name: staff.full_name,
     email: staff.email,
@@ -62,7 +74,12 @@ function staffToValues(staff: Staff): StaffFormValues {
     specialities: staff.specialities.join(", "),
     max_shifts_per_week: String(staff.max_shifts_per_week),
     max_gardes_per_month: staff.max_gardes_per_month == null ? "" : String(staff.max_gardes_per_month),
-    scheduling_constraints: JSON.stringify(staff.scheduling_constraints, null, 2),
+    max_hours_per_week: numericConstraint("max_hours_per_week", 40),
+    min_rest_hours: numericConstraint("min_rest_hours", 11),
+    max_consecutive_nights: numericConstraint("max_consecutive_nights", 2),
+    can_work_night: typeof constraints.can_work_night === "boolean"
+      ? constraints.can_work_night
+      : constraints.no_night_shifts !== true,
     hire_date: staff.hire_date ?? "",
     is_active: staff.is_active,
   };
@@ -122,15 +139,21 @@ export function StaffDialog({
       return;
     }
 
-    let schedulingConstraints: Record<string, unknown>;
-    try {
-      const parsed = JSON.parse(values.scheduling_constraints || "{}") as unknown;
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("object");
-      }
-      schedulingConstraints = parsed as Record<string, unknown>;
-    } catch {
-      setError("Les contraintes doivent être un objet JSON valide, par exemple {}.");
+    const maxHours = Number(values.max_hours_per_week);
+    if (!Number.isInteger(maxHours) || maxHours < 1 || maxHours > 168) {
+      setError("Le maximum d’heures par semaine doit être compris entre 1 et 168.");
+      return;
+    }
+
+    const minRest = Number(values.min_rest_hours);
+    if (!Number.isInteger(minRest) || minRest < 0 || minRest > 24) {
+      setError("Le repos minimum doit être compris entre 0 et 24 heures.");
+      return;
+    }
+
+    const maxConsecutiveNights = Number(values.max_consecutive_nights);
+    if (!Number.isInteger(maxConsecutiveNights) || maxConsecutiveNights < 0 || maxConsecutiveNights > 14) {
+      setError("Le nombre de nuits consécutives doit être compris entre 0 et 14.");
       return;
     }
 
@@ -147,7 +170,14 @@ export function StaffDialog({
       role: values.role,
       contract_type: values.contract_type,
       specialities,
-      scheduling_constraints: schedulingConstraints,
+      scheduling_constraints: {
+        ...((staff?.scheduling_constraints ?? {}) as Record<string, unknown>),
+        max_hours_per_week: maxHours,
+        min_rest_hours: minRest,
+        max_consecutive_nights: maxConsecutiveNights,
+        can_work_night: values.can_work_night,
+        no_night_shifts: !values.can_work_night,
+      },
       max_shifts_per_week: maxShifts,
       max_gardes_per_month: maxGardes,
       is_active: values.is_active,
@@ -227,11 +257,40 @@ export function StaffDialog({
               <input type="checkbox" checked={values.is_active} onChange={(event) => update("is_active", event.target.checked)} data-testid="checkbox-staff-active" className="size-4 accent-[#39858c]" />
               <span className="text-xs font-medium text-foreground">Membre actif</span>
             </label>
-            <label className="sm:col-span-2">
-              <span className="form-label">Contraintes de planning (JSON)</span>
-              <textarea value={values.scheduling_constraints} onChange={(event) => update("scheduling_constraints", event.target.value)} rows={4} placeholder={'{"no_night_shifts": true}'} data-testid="textarea-staff-constraints" className="form-input min-h-[96px] font-mono-ui text-[11px]" />
-              <span className="mt-1 block text-[11px] text-muted-foreground">Les règles restent flexibles pour le moteur de planning.</span>
-            </label>
+            <fieldset className="sm:col-span-2 rounded-xl border border-border bg-[#f8fbfb] p-4">
+              <legend className="px-1 text-xs font-semibold text-foreground">Contraintes de planning</legend>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <label>
+                  <span className="form-label">Heures max. / semaine</span>
+                  <input type="number" min="1" max="168" value={values.max_hours_per_week} onChange={(event) => update("max_hours_per_week", event.target.value)} data-testid="input-staff-max-hours" className="form-input" />
+                </label>
+                <label>
+                  <span className="form-label">Repos minimum (heures)</span>
+                  <input type="number" min="0" max="24" value={values.min_rest_hours} onChange={(event) => update("min_rest_hours", event.target.value)} data-testid="input-staff-min-rest" className="form-input" />
+                </label>
+                <label>
+                  <span className="form-label">Nuits consécutives max.</span>
+                  <input type="number" min="0" max="14" value={values.max_consecutive_nights} onChange={(event) => update("max_consecutive_nights", event.target.value)} data-testid="input-staff-max-consecutive-nights" className="form-input" />
+                </label>
+                <div className="flex items-center justify-between gap-4 sm:col-span-3">
+                  <div>
+                    <p className="text-xs font-medium text-foreground">Autorisé à travailler la nuit</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Désactivez cette option pour exclure les gardes de nuit.</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={values.can_work_night}
+                    aria-label="Autorisé à travailler la nuit"
+                    onClick={() => update("can_work_night", !values.can_work_night)}
+                    data-testid="switch-staff-can-work-night"
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#39858c] focus-visible:ring-offset-2 ${values.can_work_night ? "bg-[#39858c]" : "bg-[#c7d1d3]"}`}
+                  >
+                    <span className={`inline-block size-4 transform rounded-full bg-white shadow-sm transition-transform ${values.can_work_night ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
+              </div>
+            </fieldset>
           </div>
 
           {error && <p role="alert" data-testid="status-staff-form-error" className="rounded-lg border border-[#ecc7c5] bg-[#fdf1f0] px-3 py-2.5 text-xs font-medium text-[#a93d39]">{error}</p>}
