@@ -6,10 +6,10 @@ import {
   CalendarDays,
   ChevronRight,
   ClipboardList,
+  Database,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  Database,
   Stethoscope,
   UsersRound,
   X,
@@ -20,6 +20,7 @@ const navigation = [
   { href: "/planning", label: "Planning", caption: "Gardes & présences", icon: CalendarDays },
   { href: "/actes", label: "Actes", caption: "Saisie d’activité", icon: ClipboardList },
   { href: "/remuneration", label: "Rémunération", caption: "Exports & suivi", icon: BadgeEuro },
+  { href: "/admin/database", label: "Base de données", caption: "Vue de diagnostic", icon: Database },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

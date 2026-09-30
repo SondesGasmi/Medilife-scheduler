@@ -3,9 +3,15 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import {
   CreateStaffBody,
   DeleteStaffParams,
+  type StaffConstraints,
   UpdateStaffBody,
   UpdateStaffParams,
 } from "@workspace/api-zod";
+import {
+  defaultStaffConstraints,
+  normalizeStaffConstraints,
+  toUserConstraintPayload,
+} from "../lib/user-constraints";
 
 type SupabaseStaff = {
   id: string;
@@ -15,7 +21,6 @@ type SupabaseStaff = {
   role: string;
   contract_type: string;
   specialities: string[] | null;
-  scheduling_constraints: Record<string, unknown> | null;
   max_shifts_per_week: number;
   max_gardes_per_month: number | null;
   is_active: boolean;
@@ -23,6 +28,8 @@ type SupabaseStaff = {
   created_at: string;
   updated_at: string;
 };
+
+type SupabaseUserConstraint = StaffConstraints & { staff_id: string };
 
 type SupabaseError = {
   message?: string;
@@ -47,7 +54,7 @@ async function supabaseRequest(path: string, init: ProxyInit = {}) {
   return getSupabaseClient().proxy("supabase", `/rest/v1${path}`, init);
 }
 
-function toStaff(row: SupabaseStaff) {
+function toStaff(row: SupabaseStaff, constraints?: Partial<StaffConstraints> | null) {
   return {
     id: row.id,
     full_name: row.full_name,
@@ -56,7 +63,7 @@ function toStaff(row: SupabaseStaff) {
     role: row.role,
     contract_type: row.contract_type,
     specialities: row.specialities ?? [],
-    scheduling_constraints: row.scheduling_constraints ?? {},
+    constraints: normalizeStaffConstraints(constraints),
     max_shifts_per_week: row.max_shifts_per_week,
     max_gardes_per_month: row.max_gardes_per_month ?? null,
     is_active: row.is_active,
@@ -92,10 +99,27 @@ function sendProxyError(response: Response, message: string, status = 502) {
     .json({ error: schemaMissing ? "Le schéma MediLife n'est pas encore installé dans Supabase." : message });
 }
 
+async function rollbackCreatedStaff(staffId: string, req: Request) {
+  try {
+    const response = await supabaseRequest(`/staff?id=eq.${encodeURIComponent(staffId)}`, {
+      method: "DELETE",
+      headers: { Prefer: "return=minimal" },
+    });
+    if (response.ok) return true;
+    req.log.error(
+      { staffId, rollbackError: await readError(response) },
+      "Unable to clean up staff record after constraint insert failure",
+    );
+  } catch (error) {
+    req.log.error({ staffId, err: error }, "Unable to clean up staff record after constraint insert failure");
+  }
+  return false;
+}
+
 router.get("/staff", async (req, res) => {
   try {
     const response = await supabaseRequest(
-      "/staff?select=id,full_name,email,phone,role,contract_type,specialities,scheduling_constraints,max_shifts_per_week,max_gardes_per_month,is_active,hire_date,created_at,updated_at&order=created_at.desc",
+      "/staff?select=id,full_name,email,phone,role,contract_type,specialities,max_shifts_per_week,max_gardes_per_month,is_active,hire_date,created_at,updated_at&order=created_at.desc",
     );
     if (!response.ok) {
       sendProxyError(res, await readError(response));
@@ -103,7 +127,16 @@ router.get("/staff", async (req, res) => {
     }
 
     const rows = (await response.json()) as SupabaseStaff[];
-    res.json(rows.map(toStaff));
+    const constraintsResponse = await supabaseRequest(
+      "/user_constraints?select=staff_id,max_hours_per_week,min_rest_hours,max_consecutive_nights,can_work_night",
+    );
+    if (!constraintsResponse.ok) {
+      sendProxyError(res, await readError(constraintsResponse));
+      return;
+    }
+    const constraints = (await constraintsResponse.json()) as SupabaseUserConstraint[];
+    const byStaffId = new Map(constraints.map(({ staff_id, ...value }) => [staff_id, value]));
+    res.json(rows.map((row) => toStaff(row, byStaffId.get(row.id))));
   } catch (error) {
     req.log.error({ err: error }, "Unable to list staff");
     sendProxyError(res, "Impossible de charger le personnel.");
@@ -153,13 +186,14 @@ router.post("/staff", async (req, res) => {
     role,
     contract_type,
     specialities,
-    scheduling_constraints,
+    constraints,
     max_shifts_per_week,
     max_gardes_per_month,
     is_active,
     hire_date,
   } = parsed.data;
 
+  let createdStaffId: string | null = null;
   try {
     const response = await supabaseRequest("/staff", {
       method: "POST",
@@ -174,7 +208,6 @@ router.post("/staff", async (req, res) => {
         role,
         contract_type,
         specialities: specialities ?? [],
-        scheduling_constraints: scheduling_constraints ?? {},
         max_shifts_per_week,
         max_gardes_per_month: max_gardes_per_month ?? null,
         is_active: is_active ?? true,
@@ -193,9 +226,35 @@ router.post("/staff", async (req, res) => {
       sendProxyError(res, "Supabase n'a pas renvoyé le membre créé.");
       return;
     }
-    res.status(201).json(toStaff(staff));
+    createdStaffId = staff.id;
+
+    const constraintResponse = await supabaseRequest("/user_constraints", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify(toUserConstraintPayload(staff.id, constraints)),
+    });
+    if (!constraintResponse.ok) {
+      const constraintError = await readError(constraintResponse);
+      if (!(await rollbackCreatedStaff(staff.id, req))) {
+        res.status(502).json({
+          error: "La fiche a été créée, mais les contraintes n’ont pas été enregistrées et le nettoyage automatique a échoué.",
+        });
+        return;
+      }
+      sendProxyError(res, constraintError);
+      return;
+    }
+
+    const constraintRows = (await constraintResponse.json()) as SupabaseUserConstraint[];
+    res.status(201).json(toStaff(staff, constraintRows[0]));
   } catch (error) {
     req.log.error({ err: error }, "Unable to create staff");
+    if (createdStaffId && !(await rollbackCreatedStaff(createdStaffId, req))) {
+      res.status(502).json({
+        error: "La fiche a peut-être été créée sans ses contraintes et le nettoyage automatique a échoué.",
+      });
+      return;
+    }
     sendProxyError(res, "Impossible d'ajouter ce membre du personnel.");
   }
 });
@@ -208,48 +267,42 @@ router.patch("/staff/:id", async (req, res) => {
     return;
   }
 
+  const { constraints, ...staffData } = parsed.data;
   const payload = {
-    ...(parsed.data.full_name === undefined
+    ...(staffData.full_name === undefined
       ? {}
-      : { full_name: parsed.data.full_name }),
-    ...(parsed.data.email === undefined ? {} : { email: parsed.data.email }),
-    ...(parsed.data.phone === undefined ? {} : { phone: parsed.data.phone ?? null }),
-    ...(parsed.data.role === undefined ? {} : { role: parsed.data.role }),
-    ...(parsed.data.contract_type === undefined
+      : { full_name: staffData.full_name }),
+    ...(staffData.email === undefined ? {} : { email: staffData.email }),
+    ...(staffData.phone === undefined ? {} : { phone: staffData.phone ?? null }),
+    ...(staffData.role === undefined ? {} : { role: staffData.role }),
+    ...(staffData.contract_type === undefined
       ? {}
-      : { contract_type: parsed.data.contract_type }),
-    ...(parsed.data.specialities === undefined
+      : { contract_type: staffData.contract_type }),
+    ...(staffData.specialities === undefined
       ? {}
-      : { specialities: parsed.data.specialities }),
-    ...(parsed.data.scheduling_constraints === undefined
+      : { specialities: staffData.specialities }),
+    ...(staffData.max_shifts_per_week === undefined
       ? {}
-      : { scheduling_constraints: parsed.data.scheduling_constraints }),
-    ...(parsed.data.max_shifts_per_week === undefined
+      : { max_shifts_per_week: staffData.max_shifts_per_week }),
+    ...(staffData.max_gardes_per_month === undefined
       ? {}
-      : { max_shifts_per_week: parsed.data.max_shifts_per_week }),
-    ...(parsed.data.max_gardes_per_month === undefined
+      : { max_gardes_per_month: staffData.max_gardes_per_month }),
+    ...(staffData.is_active === undefined
       ? {}
-      : { max_gardes_per_month: parsed.data.max_gardes_per_month }),
-    ...(parsed.data.is_active === undefined
+      : { is_active: staffData.is_active }),
+    ...(staffData.hire_date === undefined
       ? {}
-      : { is_active: parsed.data.is_active }),
-    ...(parsed.data.hire_date === undefined
-      ? {}
-      : { hire_date: parsed.data.hire_date }),
+      : { hire_date: staffData.hire_date }),
   };
 
   try {
-    const response = await supabaseRequest(
-      `/staff?id=eq.${encodeURIComponent(params.data.id)}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify(payload),
-      },
-    );
+    const response = Object.keys(payload).length > 0
+      ? await supabaseRequest(`/staff?id=eq.${encodeURIComponent(params.data.id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+          body: JSON.stringify(payload),
+        })
+      : await supabaseRequest(`/staff?id=eq.${encodeURIComponent(params.data.id)}&select=id,full_name,email,phone,role,contract_type,specialities,max_shifts_per_week,max_gardes_per_month,is_active,hire_date,created_at,updated_at`);
     if (!response.ok) {
       sendProxyError(res, await readError(response));
       return;
@@ -261,7 +314,34 @@ router.patch("/staff/:id", async (req, res) => {
       res.status(404).json({ error: "Membre du personnel introuvable." });
       return;
     }
-    res.json(toStaff(staff));
+    let currentConstraints: Partial<StaffConstraints> | undefined;
+    if (constraints !== undefined) {
+      const constraintResponse = await supabaseRequest("/user_constraints?on_conflict=staff_id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates,return=representation",
+        },
+        body: JSON.stringify(toUserConstraintPayload(staff.id, constraints)),
+      });
+      if (!constraintResponse.ok) {
+        sendProxyError(res, await readError(constraintResponse));
+        return;
+      }
+      const constraintRows = (await constraintResponse.json()) as SupabaseUserConstraint[];
+      currentConstraints = constraintRows[0];
+    } else {
+      const constraintResponse = await supabaseRequest(
+        `/user_constraints?staff_id=eq.${encodeURIComponent(staff.id)}&select=staff_id,max_hours_per_week,min_rest_hours,max_consecutive_nights,can_work_night`,
+      );
+      if (!constraintResponse.ok) {
+        sendProxyError(res, await readError(constraintResponse));
+        return;
+      }
+      const constraintRows = (await constraintResponse.json()) as SupabaseUserConstraint[];
+      currentConstraints = constraintRows[0];
+    }
+    res.json(toStaff(staff, currentConstraints ?? defaultStaffConstraints));
   } catch (error) {
     req.log.error({ err: error }, "Unable to update staff");
     sendProxyError(res, "Impossible de modifier ce membre du personnel.");

@@ -5,6 +5,7 @@ import actsRouter from "./acts";
 import scheduleRouter from "./schedule";
 import actLogsRouter from "./act-logs";
 import remunerationRouter from "./remuneration";
+import adminDatabaseRouter from "./admin-database";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(actsRouter);
 router.use(scheduleRouter);
 router.use(actLogsRouter);
 router.use(remunerationRouter);
+router.use(adminDatabaseRouter);
 
 export default router;

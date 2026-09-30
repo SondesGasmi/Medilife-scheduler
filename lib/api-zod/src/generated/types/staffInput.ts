@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ContractType } from './contractType';
-import type { StaffInputSchedulingConstraints } from './staffInputSchedulingConstraints';
+import type { StaffConstraints } from './staffConstraints';
 import type { StaffRole } from './staffRole';
 
 export interface StaffInput {
@@ -18,7 +18,7 @@ export interface StaffInput {
   role: StaffRole;
   contract_type: ContractType;
   specialities?: string[];
-  scheduling_constraints?: StaffInputSchedulingConstraints;
+  constraints: StaffConstraints;
   /**
      * @minimum 1
      * @maximum 14

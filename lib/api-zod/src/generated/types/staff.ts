@@ -6,8 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ContractType } from './contractType';
+import type { StaffConstraints } from './staffConstraints';
 import type { StaffRole } from './staffRole';
-import type { StaffSchedulingConstraints } from './staffSchedulingConstraints';
 
 export interface Staff {
   id: string;
@@ -18,7 +18,7 @@ export interface Staff {
   role: StaffRole;
   contract_type: ContractType;
   specialities: string[];
-  scheduling_constraints: StaffSchedulingConstraints;
+  constraints: StaffConstraints;
   /** @minimum 1 */
   max_shifts_per_week: number;
   /**

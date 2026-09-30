@@ -59,8 +59,8 @@ const contractOptions: Array<{ value: ContractType; label: string }> = [
 ];
 
 function staffToValues(staff: Staff): StaffFormValues {
-  const constraints = (staff.scheduling_constraints ?? {}) as Record<string, unknown>;
-  const numericConstraint = (key: string, fallback: number) => {
+  const constraints = staff.constraints;
+  const numericConstraint = (key: keyof typeof constraints, fallback: number) => {
     const value = Number(constraints[key]);
     return Number.isFinite(value) ? String(value) : String(fallback);
   };
@@ -77,9 +77,7 @@ function staffToValues(staff: Staff): StaffFormValues {
     max_hours_per_week: numericConstraint("max_hours_per_week", 40),
     min_rest_hours: numericConstraint("min_rest_hours", 11),
     max_consecutive_nights: numericConstraint("max_consecutive_nights", 2),
-    can_work_night: typeof constraints.can_work_night === "boolean"
-      ? constraints.can_work_night
-      : constraints.no_night_shifts !== true,
+    can_work_night: constraints.can_work_night,
     hire_date: staff.hire_date ?? "",
     is_active: staff.is_active,
   };
@@ -170,13 +168,11 @@ export function StaffDialog({
       role: values.role,
       contract_type: values.contract_type,
       specialities,
-      scheduling_constraints: {
-        ...((staff?.scheduling_constraints ?? {}) as Record<string, unknown>),
+      constraints: {
         max_hours_per_week: maxHours,
         min_rest_hours: minRest,
         max_consecutive_nights: maxConsecutiveNights,
         can_work_night: values.can_work_night,
-        no_night_shifts: !values.can_work_night,
       },
       max_shifts_per_week: maxShifts,
       max_gardes_per_month: maxGardes,

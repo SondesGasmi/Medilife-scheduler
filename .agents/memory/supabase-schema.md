@@ -3,8 +3,8 @@ name: Supabase schema prerequisite
 description: MediLife's Supabase connector exposes PostgREST data access, but it does not create the application tables.
 ---
 
-The MediLife SQL schema must be applied in the connected Supabase project before the Personnel CRUD can return data.
+MediLife's SQL must be applied manually in the connected Supabase project before staff CRUD or schedule generation can return data. Use the full schema for a fresh installation and the user-constraints migration for an existing installation.
 
-**Why:** The connected Supabase project can be reached through PostgREST, but requests to `public.staff` fail until the table and its supporting types exist.
+**Why:** The connected Supabase project can be reached through PostgREST, but requests fail until the required tables and types exist. Existing installations need `user_constraints` populated before the app can enforce typed scheduling limits.
 
-**How to apply:** Run the provided MediLife schema SQL in the Supabase SQL editor, then refresh the Personnel view. Keep the API's schema-missing response because it gives administrators a clear recovery path.
+**How to apply:** Run `attached_assets/medilife_schema_1788785548602.sql` for a new database, or `attached_assets/medilife_user_constraints_migration.sql` to upgrade an existing one. The upgrade retains the legacy JSON column for rollback, but the app no longer reads or writes it. Keep the API's schema-missing response as a clear recovery path.

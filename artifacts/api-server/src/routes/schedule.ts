@@ -7,6 +7,13 @@ import {
   UpdateScheduleSlotBody,
   UpdateScheduleSlotParams,
 } from "@workspace/api-zod";
+import {
+  addUtcDays,
+  generateScheduleAssignments,
+  listDates,
+  type SchedulableStaff,
+  type ShiftRecord,
+} from "../lib/schedule-generator";
 
 type ScheduleRow = {
   id: string;
@@ -22,10 +29,18 @@ type ScheduleRow = {
   updated_at: string;
 };
 
-type StaffConstraintRow = {
+type StaffRow = {
   id: string;
-  scheduling_constraints: Record<string, unknown> | null;
   max_shifts_per_week: number;
+  max_gardes_per_month: number | null;
+};
+
+type UserConstraintRow = {
+  staff_id: string;
+  max_hours_per_week: number;
+  min_rest_hours: number;
+  max_consecutive_nights: number;
+  can_work_night: boolean;
 };
 
 const router: IRouter = Router();
@@ -55,17 +70,6 @@ function toSchedule(row: ScheduleRow) {
   return row;
 }
 
-function dateRange(from: string, to: string) {
-  const result: string[] = [];
-  const current = new Date(`${from}T00:00:00Z`);
-  const end = new Date(`${to}T00:00:00Z`);
-  while (current <= end) {
-    result.push(current.toISOString().slice(0, 10));
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
-  return result;
-}
-
 function dateValue(value: string | Date) {
   return value instanceof Date ? value.toISOString().slice(0, 10) : value;
 }
@@ -74,19 +78,6 @@ function queryDate(value: unknown) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const date = new Date(`${value}T00:00:00Z`);
   return Number.isNaN(date.getTime()) ? null : value;
-}
-
-function isUnavailable(staff: StaffConstraintRow, date: string, shiftType: string) {
-  const constraints = staff.scheduling_constraints ?? {};
-  const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
-  const unavailable = constraints.unavailable_weekdays;
-  if (Array.isArray(unavailable) && unavailable.some((value) => Number(value) === weekday || String(value) === String(weekday))) {
-    return true;
-  }
-  if (shiftType === "garde_nuit" && constraints.no_night_shifts === true) return true;
-  const fixedDaysOff = constraints.fixed_days_off;
-  if (Array.isArray(fixedDaysOff) && fixedDaysOff.includes(date)) return true;
-  return false;
 }
 
 router.get("/schedule-slots", async (req: Request, res: Response) => {
@@ -156,15 +147,61 @@ router.post("/schedule-slots/generate", async (req: Request, res: Response) => {
   const from = dateValue(parsed.data.from);
   const to = dateValue(parsed.data.to);
   const { full_reset = false } = parsed.data;
+  if (from > to) {
+    res.status(400).json({ error: "La date de début doit précéder ou correspondre à la date de fin." });
+    return;
+  }
   try {
+    const contextFrom = addUtcDays(from, -14);
+    const contextTo = addUtcDays(to, 7);
     const existingResponse = await requestSupabase(
-      `/schedule_slots?select=id,staff_id,shift_date,shift_type,is_locked&shift_date=gte.${encodeURIComponent(from)}&shift_date=lte.${encodeURIComponent(to)}`,
+      `/schedule_slots?select=id,staff_id,shift_date,shift_type,status,is_locked&shift_date=gte.${encodeURIComponent(contextFrom)}&shift_date=lte.${encodeURIComponent(contextTo)}`,
     );
     if (!existingResponse.ok) {
       sendError(res, await errorMessage(existingResponse));
       return;
     }
-    const existing = (await existingResponse.json()) as Array<Pick<ScheduleRow, "id" | "staff_id" | "shift_date" | "shift_type" | "is_locked">>;
+    const existing = (await existingResponse.json()) as Array<
+      Pick<ScheduleRow, "id" | "staff_id" | "shift_date" | "shift_type" | "status" | "is_locked">
+    >;
+
+    const staffResponse = await requestSupabase(
+      "/staff?select=id,max_shifts_per_week,max_gardes_per_month&is_active=eq.true&order=full_name.asc",
+    );
+    if (!staffResponse.ok) {
+      sendError(res, await errorMessage(staffResponse));
+      return;
+    }
+    const staffRows = (await staffResponse.json()) as StaffRow[];
+    const constraintsResponse = staffRows.length
+      ? await requestSupabase(
+          `/user_constraints?staff_id=in.(${staffRows.map(({ id }) => id).join(",")})&select=staff_id,max_hours_per_week,min_rest_hours,max_consecutive_nights,can_work_night`,
+        )
+      : null;
+    if (constraintsResponse && !constraintsResponse.ok) {
+      sendError(res, await errorMessage(constraintsResponse));
+      return;
+    }
+
+    const constraintRows = constraintsResponse
+      ? ((await constraintsResponse.json()) as UserConstraintRow[])
+      : [];
+    const constraintsByStaffId = new Map(constraintRows.map(({ staff_id, ...constraint }) => [staff_id, constraint]));
+    const missingConstraints = staffRows.find((member) => !constraintsByStaffId.has(member.id));
+    if (missingConstraints) {
+      res.status(409).json({ error: "Un membre actif n’a pas de contraintes enregistrées. Modifiez sa fiche puis réessayez." });
+      return;
+    }
+    const staff: SchedulableStaff[] = staffRows.map((member) => ({
+      ...member,
+      constraints: constraintsByStaffId.get(member.id)!,
+    }));
+    const seedSlots: ShiftRecord[] = existing.filter((slot) =>
+      slot.shift_date < from ||
+      slot.shift_date > to ||
+      (!full_reset && slot.is_locked),
+    );
+    const created = generateScheduleAssignments(listDates(from, to), staff, seedSlots);
 
     const deleteFilter = full_reset ? "" : "&is_locked=eq.false";
     const deleteResponse = await requestSupabase(
@@ -174,41 +211,6 @@ router.post("/schedule-slots/generate", async (req: Request, res: Response) => {
     if (!deleteResponse.ok) {
       sendError(res, await errorMessage(deleteResponse));
       return;
-    }
-
-    const staffResponse = await requestSupabase(
-      "/staff?select=id,scheduling_constraints,max_shifts_per_week&is_active=eq.true&order=full_name.asc",
-    );
-    if (!staffResponse.ok) {
-      sendError(res, await errorMessage(staffResponse));
-      return;
-    }
-    const staff = (await staffResponse.json()) as StaffConstraintRow[];
-    const locked = full_reset ? [] : existing.filter((slot) => slot.is_locked);
-    const created: Array<Record<string, unknown>> = [];
-    const shiftTypes = ["journee_complete", "garde_jour", "garde_nuit"];
-    const assignedPerStaff = new Map<string, number>();
-
-    for (const date of dateRange(from, to)) {
-      const assignedToday = new Set<string>(
-        locked.filter((slot) => slot.shift_date === date && slot.staff_id).map((slot) => slot.staff_id as string),
-      );
-      for (const shiftType of shiftTypes) {
-        const candidates = staff
-          .filter((member) => !assignedToday.has(member.id) && !isUnavailable(member, date, shiftType))
-          .sort((a, b) => (assignedPerStaff.get(a.id) ?? 0) - (assignedPerStaff.get(b.id) ?? 0));
-        const selected = candidates[0];
-        if (!selected) continue;
-        assignedToday.add(selected.id);
-        assignedPerStaff.set(selected.id, (assignedPerStaff.get(selected.id) ?? 0) + 1);
-        created.push({
-          staff_id: selected.id,
-          shift_date: date,
-          shift_type: shiftType,
-          status: "planifie",
-          is_locked: false,
-        });
-      }
     }
 
     if (created.length === 0) {

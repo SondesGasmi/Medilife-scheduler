@@ -20,7 +20,18 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary List staff members
  */
+export const listStaffResponseConstraintsMaxHoursPerWeekDefault = 40;
+export const listStaffResponseConstraintsMaxHoursPerWeekMax = 168;
 
+export const listStaffResponseConstraintsMinRestHoursDefault = 11;
+export const listStaffResponseConstraintsMinRestHoursMin = 0;
+export const listStaffResponseConstraintsMinRestHoursMax = 24;
+
+export const listStaffResponseConstraintsMaxConsecutiveNightsDefault = 2;
+export const listStaffResponseConstraintsMaxConsecutiveNightsMin = 0;
+export const listStaffResponseConstraintsMaxConsecutiveNightsMax = 14;
+
+export const listStaffResponseConstraintsCanWorkNightDefault = true;
 export const listStaffResponseMaxGardesPerMonthMin = 0;
 
 
@@ -33,7 +44,12 @@ export const ListStaffResponseItem = zod.object({
   "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
   "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
   "specialities": zod.array(zod.string()),
-  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(listStaffResponseConstraintsMaxHoursPerWeekMax).default(listStaffResponseConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(listStaffResponseConstraintsMinRestHoursMin).max(listStaffResponseConstraintsMinRestHoursMax).default(listStaffResponseConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(listStaffResponseConstraintsMaxConsecutiveNightsMin).max(listStaffResponseConstraintsMaxConsecutiveNightsMax).default(listStaffResponseConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(listStaffResponseConstraintsCanWorkNightDefault)
+}),
   "max_shifts_per_week": zod.number().int().min(1),
   "max_gardes_per_month": zod.number().int().min(listStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),
@@ -49,6 +65,18 @@ export const ListStaffResponse = zod.array(ListStaffResponseItem)
  */
 export const createStaffBodyFullNameMin = 2;
 
+export const createStaffBodyConstraintsMaxHoursPerWeekDefault = 40;
+export const createStaffBodyConstraintsMaxHoursPerWeekMax = 168;
+
+export const createStaffBodyConstraintsMinRestHoursDefault = 11;
+export const createStaffBodyConstraintsMinRestHoursMin = 0;
+export const createStaffBodyConstraintsMinRestHoursMax = 24;
+
+export const createStaffBodyConstraintsMaxConsecutiveNightsDefault = 2;
+export const createStaffBodyConstraintsMaxConsecutiveNightsMin = 0;
+export const createStaffBodyConstraintsMaxConsecutiveNightsMax = 14;
+
+export const createStaffBodyConstraintsCanWorkNightDefault = true;
 export const createStaffBodyMaxShiftsPerWeekMax = 14;
 
 export const createStaffBodyMaxGardesPerMonthMin = 0;
@@ -62,14 +90,30 @@ export const CreateStaffBody = zod.object({
   "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
   "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
   "specialities": zod.array(zod.string()).optional(),
-  "scheduling_constraints": zod.record(zod.string(), zod.unknown()).optional(),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(createStaffBodyConstraintsMaxHoursPerWeekMax).default(createStaffBodyConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(createStaffBodyConstraintsMinRestHoursMin).max(createStaffBodyConstraintsMinRestHoursMax).default(createStaffBodyConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(createStaffBodyConstraintsMaxConsecutiveNightsMin).max(createStaffBodyConstraintsMaxConsecutiveNightsMax).default(createStaffBodyConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(createStaffBodyConstraintsCanWorkNightDefault)
+}),
   "max_shifts_per_week": zod.number().int().min(1).max(createStaffBodyMaxShiftsPerWeekMax),
   "max_gardes_per_month": zod.number().int().min(createStaffBodyMaxGardesPerMonthMin).nullish(),
   "is_active": zod.boolean().optional(),
   "hire_date": zod.string().nullish()
 })
 
+export const createStaffResponseConstraintsMaxHoursPerWeekDefault = 40;
+export const createStaffResponseConstraintsMaxHoursPerWeekMax = 168;
 
+export const createStaffResponseConstraintsMinRestHoursDefault = 11;
+export const createStaffResponseConstraintsMinRestHoursMin = 0;
+export const createStaffResponseConstraintsMinRestHoursMax = 24;
+
+export const createStaffResponseConstraintsMaxConsecutiveNightsDefault = 2;
+export const createStaffResponseConstraintsMaxConsecutiveNightsMin = 0;
+export const createStaffResponseConstraintsMaxConsecutiveNightsMax = 14;
+
+export const createStaffResponseConstraintsCanWorkNightDefault = true;
 export const createStaffResponseMaxGardesPerMonthMin = 0;
 
 
@@ -82,7 +126,12 @@ export const CreateStaffResponse = zod.object({
   "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
   "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
   "specialities": zod.array(zod.string()),
-  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(createStaffResponseConstraintsMaxHoursPerWeekMax).default(createStaffResponseConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(createStaffResponseConstraintsMinRestHoursMin).max(createStaffResponseConstraintsMinRestHoursMax).default(createStaffResponseConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(createStaffResponseConstraintsMaxConsecutiveNightsMin).max(createStaffResponseConstraintsMaxConsecutiveNightsMax).default(createStaffResponseConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(createStaffResponseConstraintsCanWorkNightDefault)
+}),
   "max_shifts_per_week": zod.number().int().min(1),
   "max_gardes_per_month": zod.number().int().min(createStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),
@@ -104,6 +153,72 @@ export const GetStaffSummaryResponse = zod.object({
 
 
 /**
+ * @summary Read users, assignments, and schedules
+ */
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxHoursPerWeekDefault = 40;
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxHoursPerWeekMax = 168;
+
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursDefault = 11;
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursMin = 0;
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursMax = 24;
+
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsDefault = 2;
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsMin = 0;
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsMax = 14;
+
+export const getAdminDatabaseSnapshotResponseUsersItemConstraintsCanWorkNightDefault = true;
+export const getAdminDatabaseSnapshotResponseUsersItemMaxGardesPerMonthMin = 0;
+
+
+
+export const GetAdminDatabaseSnapshotResponse = zod.object({
+  "users": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "full_name": zod.string(),
+  "email": zod.string().email(),
+  "phone": zod.string().nullable(),
+  "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
+  "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
+  "specialities": zod.array(zod.string()),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxHoursPerWeekMax).default(getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursMin).max(getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursMax).default(getAdminDatabaseSnapshotResponseUsersItemConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsMin).max(getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsMax).default(getAdminDatabaseSnapshotResponseUsersItemConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(getAdminDatabaseSnapshotResponseUsersItemConstraintsCanWorkNightDefault)
+}),
+  "max_shifts_per_week": zod.number().int().min(1),
+  "max_gardes_per_month": zod.number().int().min(getAdminDatabaseSnapshotResponseUsersItemMaxGardesPerMonthMin).nullable(),
+  "is_active": zod.boolean(),
+  "hire_date": zod.coerce.date().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+})),
+  "assignments": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid(),
+  "staff_name": zod.string(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean()
+})),
+  "schedules": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "staff_id": zod.string().uuid().nullable(),
+  "shift_date": zod.coerce.date(),
+  "shift_type": zod.enum(['matin', 'apres_midi', 'journee_complete', 'garde_jour', 'garde_nuit', 'repos']),
+  "status": zod.enum(['planifie', 'confirme', 'annule', 'remplace']),
+  "is_locked": zod.boolean(),
+  "locked_by": zod.string().uuid().nullable(),
+  "locked_at": zod.coerce.date().nullable(),
+  "notes": zod.string().nullable(),
+  "created_at": zod.coerce.date(),
+  "updated_at": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Update a staff member
  */
 export const UpdateStaffParams = zod.object({
@@ -112,6 +227,18 @@ export const UpdateStaffParams = zod.object({
 
 export const updateStaffBodyFullNameMin = 2;
 
+export const updateStaffBodyConstraintsMaxHoursPerWeekDefault = 40;
+export const updateStaffBodyConstraintsMaxHoursPerWeekMax = 168;
+
+export const updateStaffBodyConstraintsMinRestHoursDefault = 11;
+export const updateStaffBodyConstraintsMinRestHoursMin = 0;
+export const updateStaffBodyConstraintsMinRestHoursMax = 24;
+
+export const updateStaffBodyConstraintsMaxConsecutiveNightsDefault = 2;
+export const updateStaffBodyConstraintsMaxConsecutiveNightsMin = 0;
+export const updateStaffBodyConstraintsMaxConsecutiveNightsMax = 14;
+
+export const updateStaffBodyConstraintsCanWorkNightDefault = true;
 export const updateStaffBodyMaxShiftsPerWeekMax = 14;
 
 export const updateStaffBodyMaxGardesPerMonthMin = 0;
@@ -125,14 +252,30 @@ export const UpdateStaffBody = zod.object({
   "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']).optional(),
   "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']).optional(),
   "specialities": zod.array(zod.string()).optional(),
-  "scheduling_constraints": zod.record(zod.string(), zod.unknown()).optional(),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(updateStaffBodyConstraintsMaxHoursPerWeekMax).default(updateStaffBodyConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(updateStaffBodyConstraintsMinRestHoursMin).max(updateStaffBodyConstraintsMinRestHoursMax).default(updateStaffBodyConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(updateStaffBodyConstraintsMaxConsecutiveNightsMin).max(updateStaffBodyConstraintsMaxConsecutiveNightsMax).default(updateStaffBodyConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(updateStaffBodyConstraintsCanWorkNightDefault)
+}).optional(),
   "max_shifts_per_week": zod.number().int().min(1).max(updateStaffBodyMaxShiftsPerWeekMax).optional(),
   "max_gardes_per_month": zod.number().int().min(updateStaffBodyMaxGardesPerMonthMin).nullish(),
   "is_active": zod.boolean().optional(),
   "hire_date": zod.coerce.date().nullish()
 })
 
+export const updateStaffResponseConstraintsMaxHoursPerWeekDefault = 40;
+export const updateStaffResponseConstraintsMaxHoursPerWeekMax = 168;
 
+export const updateStaffResponseConstraintsMinRestHoursDefault = 11;
+export const updateStaffResponseConstraintsMinRestHoursMin = 0;
+export const updateStaffResponseConstraintsMinRestHoursMax = 24;
+
+export const updateStaffResponseConstraintsMaxConsecutiveNightsDefault = 2;
+export const updateStaffResponseConstraintsMaxConsecutiveNightsMin = 0;
+export const updateStaffResponseConstraintsMaxConsecutiveNightsMax = 14;
+
+export const updateStaffResponseConstraintsCanWorkNightDefault = true;
 export const updateStaffResponseMaxGardesPerMonthMin = 0;
 
 
@@ -145,7 +288,12 @@ export const UpdateStaffResponse = zod.object({
   "role": zod.enum(['radiologue', 'medecin', 'manipulateur_radio', 'technicien', 'secretaire', 'administrateur']),
   "contract_type": zod.enum(['cdi', 'temps_partiel', 'vacataire', 'stagiaire']),
   "specialities": zod.array(zod.string()),
-  "scheduling_constraints": zod.record(zod.string(), zod.unknown()),
+  "constraints": zod.object({
+  "max_hours_per_week": zod.number().int().min(1).max(updateStaffResponseConstraintsMaxHoursPerWeekMax).default(updateStaffResponseConstraintsMaxHoursPerWeekDefault),
+  "min_rest_hours": zod.number().int().min(updateStaffResponseConstraintsMinRestHoursMin).max(updateStaffResponseConstraintsMinRestHoursMax).default(updateStaffResponseConstraintsMinRestHoursDefault),
+  "max_consecutive_nights": zod.number().int().min(updateStaffResponseConstraintsMaxConsecutiveNightsMin).max(updateStaffResponseConstraintsMaxConsecutiveNightsMax).default(updateStaffResponseConstraintsMaxConsecutiveNightsDefault),
+  "can_work_night": zod.boolean().default(updateStaffResponseConstraintsCanWorkNightDefault)
+}),
   "max_shifts_per_week": zod.number().int().min(1),
   "max_gardes_per_month": zod.number().int().min(updateStaffResponseMaxGardesPerMonthMin).nullable(),
   "is_active": zod.boolean(),

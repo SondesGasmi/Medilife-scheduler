@@ -5,6 +5,7 @@ Application française de gestion des gardes, des actes diagnostiques et de la r
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/api-server run test` — verify scheduling constraint behavior
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -22,17 +23,18 @@ Application française de gestion des gardes, des actes diagnostiques et de la r
 
 ## Where things live
 
-- `artifacts/medilife/src/pages/` — Personnel, Planning, Actes and Rémunération screens
+- `artifacts/medilife/src/pages/` — Personnel, Planning, Actes, Rémunération and database overview screens
 - `artifacts/api-server/src/routes/` — server-side Supabase proxy routes
 - `lib/api-spec/openapi.yaml` — API source of truth and codegen input
-- `attached_assets/medilife_schema_1788785548602.sql` — Supabase schema source of truth
+- `attached_assets/medilife_schema_1788785548602.sql` — Supabase schema for fresh installations
+- `attached_assets/medilife_user_constraints_migration.sql` — migration for existing installations
 - `artifacts/medilife/src/index.css` — MediLife visual system
 
 ## Architecture decisions
 
 - The browser calls the MediLife API; Supabase access stays on the API server.
 - The application does not create or replace the supplied Supabase schema.
-- Staff specialities remain an array and scheduling constraints remain JSON so the SQL model is not flattened.
+- Staff specialities remain an array; typed scheduling constraints live in `user_constraints`, linked to the canonical `staff.id`.
 - Authentication is intentionally not blocking the development MVP and must be hardened before production.
 
 ## Product
@@ -48,7 +50,8 @@ Application française de gestion des gardes, des actes diagnostiques et de la r
 
 ## Gotchas
 
-- The user must execute the supplied SQL manually in Supabase before CRUD can be tested.
+- The user must execute the full schema SQL for a fresh Supabase database, or the user-constraints migration for an existing database, before staff CRUD and schedule generation can run.
+- The legacy JSON constraint column is retained only by the upgrade migration for rollback safety; the application reads and writes the structured `user_constraints` table.
 - The supplied act tariffs are intentionally zero until real values are entered in Supabase.
 - The SQL currently contains read-only authenticated RLS policies; write/auth hardening remains before production.
 

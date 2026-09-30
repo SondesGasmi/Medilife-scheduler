@@ -9,8 +9,6 @@ export interface HealthStatus {
   status: string;
 }
 
-export type StaffSchedulingConstraints = { [key: string]: unknown };
-
 export type StaffRole = typeof StaffRole[keyof typeof StaffRole];
 
 
@@ -33,6 +31,25 @@ export const ContractType = {
   stagiaire: 'stagiaire',
 } as const;
 
+export interface StaffConstraints {
+  /**
+     * @minimum 1
+     * @maximum 168
+     */
+  max_hours_per_week: number;
+  /**
+     * @minimum 0
+     * @maximum 24
+     */
+  min_rest_hours: number;
+  /**
+     * @minimum 0
+     * @maximum 14
+     */
+  max_consecutive_nights: number;
+  can_work_night: boolean;
+}
+
 export interface Staff {
   id: string;
   full_name: string;
@@ -42,7 +59,7 @@ export interface Staff {
   role: StaffRole;
   contract_type: ContractType;
   specialities: string[];
-  scheduling_constraints: StaffSchedulingConstraints;
+  constraints: StaffConstraints;
   /** @minimum 1 */
   max_shifts_per_week: number;
   /**
@@ -57,8 +74,6 @@ export interface Staff {
   updated_at: string;
 }
 
-export type StaffInputSchedulingConstraints = { [key: string]: unknown };
-
 export interface StaffInput {
   /** @minLength 2 */
   full_name: string;
@@ -68,7 +83,7 @@ export interface StaffInput {
   role: StaffRole;
   contract_type: ContractType;
   specialities?: string[];
-  scheduling_constraints?: StaffInputSchedulingConstraints;
+  constraints: StaffConstraints;
   /**
      * @minimum 1
      * @maximum 14
@@ -84,8 +99,6 @@ export interface StaffInput {
   hire_date?: string | null;
 }
 
-export type StaffUpdateSchedulingConstraints = { [key: string]: unknown };
-
 export interface StaffUpdate {
   /** @minLength 2 */
   full_name?: string;
@@ -95,7 +108,7 @@ export interface StaffUpdate {
   role?: StaffRole;
   contract_type?: ContractType;
   specialities?: string[];
-  scheduling_constraints?: StaffUpdateSchedulingConstraints;
+  constraints?: StaffConstraints;
   /**
      * @minimum 1
      * @maximum 14
@@ -116,18 +129,6 @@ export interface StaffSummary {
   active: number;
   radiologists: number;
   available_slots: number;
-}
-
-export interface Act {
-  id: string;
-  code: string;
-  name_fr: string;
-  category: string;
-  /** @minimum 0 */
-  base_price: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export type ShiftType = typeof ShiftType[keyof typeof ShiftType];
@@ -152,6 +153,16 @@ export const SlotStatus = {
   remplace: 'remplace',
 } as const;
 
+export interface AdminAssignment {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  shift_date: string;
+  shift_type: ShiftType;
+  status: SlotStatus;
+  is_locked: boolean;
+}
+
 export interface ScheduleSlot {
   id: string;
   /** @nullable */
@@ -166,6 +177,24 @@ export interface ScheduleSlot {
   locked_at: string | null;
   /** @nullable */
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminDatabaseSnapshot {
+  users: Staff[];
+  assignments: AdminAssignment[];
+  schedules: ScheduleSlot[];
+}
+
+export interface Act {
+  id: string;
+  code: string;
+  name_fr: string;
+  category: string;
+  /** @minimum 0 */
+  base_price: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

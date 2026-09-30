@@ -60,11 +60,6 @@ create table staff (
   -- several diagnostic domains, e.g. {'echodoppler', 'echographie_generale'})
   specialities          text[] not null default '{}',
 
-  -- Scheduling constraints, kept flexible in JSONB rather than rigid columns
-  -- because rules vary a lot per employee (e.g. no night shifts, max 2 gardes/week,
-  -- unavailable_weekdays, fixed_days_off, etc.)
-  scheduling_constraints jsonb not null default '{}'::jsonb,
-
   max_shifts_per_week   smallint not null default 5,
   max_gardes_per_month  smallint default null,
 
@@ -78,6 +73,21 @@ create table staff (
 create index idx_staff_role on staff(role);
 create index idx_staff_active on staff(is_active) where is_active = true;
 create index idx_staff_specialities on staff using gin(specialities);
+
+-- ============================================================================
+-- TABLE: user_constraints
+-- Structured scheduling constraints linked to each staff member
+-- ============================================================================
+
+create table user_constraints (
+  staff_id                 uuid primary key references staff(id) on delete cascade,
+  max_hours_per_week       smallint not null default 40 check (max_hours_per_week between 1 and 168),
+  min_rest_hours           smallint not null default 11 check (min_rest_hours between 0 and 24),
+  max_consecutive_nights   smallint not null default 2 check (max_consecutive_nights between 0 and 14),
+  can_work_night           boolean not null default true,
+  created_at               timestamptz not null default now(),
+  updated_at               timestamptz not null default now()
+);
 
 -- ============================================================================
 -- TABLE: acts
@@ -195,6 +205,10 @@ create trigger trg_staff_updated_at
   before update on staff
   for each row execute function set_updated_at();
 
+create trigger trg_user_constraints_updated_at
+  before update on user_constraints
+  for each row execute function set_updated_at();
+
 create trigger trg_acts_updated_at
   before update on acts
   for each row execute function set_updated_at();
@@ -290,11 +304,14 @@ order by month desc, s.full_name;
 -- ============================================================================
 
 alter table staff enable row level security;
+alter table user_constraints enable row level security;
 alter table acts enable row level security;
 alter table schedule_slots enable row level security;
 alter table act_logs enable row level security;
 
 create policy "Authenticated read access" on staff
+  for select using (auth.role() = 'authenticated');
+create policy "Authenticated read access" on user_constraints
   for select using (auth.role() = 'authenticated');
 create policy "Authenticated read access" on acts
   for select using (auth.role() = 'authenticated');

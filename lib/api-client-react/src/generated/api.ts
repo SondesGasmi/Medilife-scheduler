@@ -24,6 +24,7 @@ import type {
   ActLog,
   ActLogInput,
   ActLogUpdate,
+  AdminDatabaseSnapshot,
   ErrorResponse,
   HealthStatus,
   ListActLogsParams,
@@ -357,6 +358,83 @@ export function useGetStaffSummary<TData = Awaited<ReturnType<typeof getStaffSum
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetStaffSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAdminDatabaseSnapshotUrl = () => {
+
+
+
+
+  return `/api/admin/database`
+}
+
+/**
+ * @summary Read users, assignments, and schedules
+ */
+export const getAdminDatabaseSnapshot = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminDatabaseSnapshot> => {
+
+  return customFetch<AdminDatabaseSnapshot>(getGetAdminDatabaseSnapshotUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminDatabaseSnapshotQueryKey = () => {
+    return [
+    `/api/admin/database`
+    ] as const;
+    }
+
+
+export const getGetAdminDatabaseSnapshotQueryOptions = <TData = Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminDatabaseSnapshotQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>> = ({ signal }) => getAdminDatabaseSnapshot({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdminDatabaseSnapshotQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>>
+export type GetAdminDatabaseSnapshotQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Read users, assignments, and schedules
+ */
+
+export function useGetAdminDatabaseSnapshot<TData = Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdminDatabaseSnapshot>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdminDatabaseSnapshotQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

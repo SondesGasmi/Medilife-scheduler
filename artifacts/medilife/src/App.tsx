@@ -9,6 +9,7 @@ import PersonnelPage from '@/pages/personnel';
 import PlanningPage from '@/pages/planning';
 import ActesPage from '@/pages/actes';
 import RemunerationPage from '@/pages/remuneration';
+import AdminDatabasePage from '@/pages/admin-database';
 import {
   Route,
   Switch,
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/planning" component={PlanningPage} />
           <Route path="/actes" component={ActesPage} />
           <Route path="/remuneration" component={RemunerationPage} />
+          <Route path="/admin/database" component={AdminDatabasePage} />
           <Route component={NotFound} />
         </Switch>
       </AppShell>

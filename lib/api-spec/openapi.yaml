@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: staff
     description: Medical staff management
+  - name: admin
+    description: Administrative database overview
   - name: acts
     description: Diagnostic acts catalogue
   - name: schedule
@@ -83,6 +85,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StaffSummary"
+  /admin/database:
+    get:
+      operationId: getAdminDatabaseSnapshot
+      tags: [admin]
+      summary: Read users, assignments, and schedules
+      responses:
+        "200":
+          description: Database snapshot for the admin overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDatabaseSnapshot"
+        "503":
+          description: MediLife schema is not installed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /staff/{id}:
     patch:
       operationId: updateStaff
@@ -391,9 +411,8 @@ components:
           type: array
           items:
             type: string
-        scheduling_constraints:
-          type: object
-          additionalProperties: true
+        constraints:
+          $ref: "#/components/schemas/StaffConstraints"
         max_shifts_per_week:
           type: integer
           minimum: 1
@@ -419,7 +438,7 @@ components:
         - role
         - contract_type
         - specialities
-        - scheduling_constraints
+        - constraints
         - max_shifts_per_week
         - max_gardes_per_month
         - is_active
@@ -445,9 +464,8 @@ components:
           type: array
           items:
             type: string
-        scheduling_constraints:
-          type: object
-          additionalProperties: true
+        constraints:
+          $ref: "#/components/schemas/StaffConstraints"
         max_shifts_per_week:
           type: integer
           minimum: 1
@@ -465,6 +483,7 @@ components:
         - role
         - contract_type
         - max_shifts_per_week
+        - constraints
     StaffUpdate:
       type: object
       properties:
@@ -484,9 +503,8 @@ components:
           type: array
           items:
             type: string
-        scheduling_constraints:
-          type: object
-          additionalProperties: true
+        constraints:
+          $ref: "#/components/schemas/StaffConstraints"
         max_shifts_per_week:
           type: integer
           minimum: 1
@@ -515,6 +533,65 @@ components:
         - active
         - radiologists
         - available_slots
+    StaffConstraints:
+      type: object
+      properties:
+        max_hours_per_week:
+          type: integer
+          minimum: 1
+          maximum: 168
+          default: 40
+        min_rest_hours:
+          type: integer
+          minimum: 0
+          maximum: 24
+          default: 11
+        max_consecutive_nights:
+          type: integer
+          minimum: 0
+          maximum: 14
+          default: 2
+        can_work_night:
+          type: boolean
+          default: true
+      required: [max_hours_per_week, min_rest_hours, max_consecutive_nights, can_work_night]
+    AdminAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        staff_id:
+          type: string
+          format: uuid
+        staff_name:
+          type: string
+        shift_date:
+          type: string
+          format: date
+        shift_type:
+          $ref: "#/components/schemas/ShiftType"
+        status:
+          $ref: "#/components/schemas/SlotStatus"
+        is_locked:
+          type: boolean
+      required: [id, staff_id, staff_name, shift_date, shift_type, status, is_locked]
+    AdminDatabaseSnapshot:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/Staff"
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminAssignment"
+        schedules:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScheduleSlot"
+      required: [users, assignments, schedules]
     StaffRole:
       type: string
       enum:
